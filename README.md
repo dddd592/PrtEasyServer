@@ -4,7 +4,7 @@ Native C++ Windows RAW 9100 Network Print Server and TCP/IP Printer Server for l
 
 [![Releases](https://img.shields.io/badge/Releases-v2.1.0.0-blue)](https://github.com/dddd592/PrtEasyServer/releases) | [Upstream](https://github.com/Terence0816/Windows-PrtEasyServer) | [MIT License](./LICENSE)
 
-English | [繁體中文](#zh-tw)
+English | [繁體中文](#zh-tw) | [简体中文](#zh-cn)
 
 PrtEasyServer is a native C++ rewrite of the original Python-packaged application. It turns a Windows PC into a lightweight RAW 9100 / TCP-IP printer server, so client PCs can install shared printers through a standard IP port without SMB printer sharing, Windows network neighborhood prompts, or account/password dialogs.
 
@@ -457,4 +457,146 @@ Original Copyright (c) 2025 xtieume@gmail.com
 ## 授權
 
 本儲存庫目前使用 MIT License，詳見 [LICENSE](./LICENSE)。
+
+---
+
+<a id="zh-cn"></a>
+
+# 简体中文
+
+PrtEasyServer 现已改为原生 C++ 版本，是一个 Windows RAW 9100 网络打印机服务器，可把本机 USB 打印机或已安装在 Windows 上的打印机转成 TCP/IP 网络打印机。用户可通过标准 IP 端口安装打印机，不需要使用 Windows 网上邻居或 SMB 打印机共享，也不会碰到账号密码提示。
+
+## 关于本仓库（强化分支）
+
+本仓库是 [Terence0816/Windows-PrtEasyServer](https://github.com/Terence0816/Windows-PrtEasyServer)（v2.1.0.0）的强化分支，在上游基础上新增：
+
+- **AUTO 自动打印模式**：启动时探测每个队列的驱动程序，打印时按内容嗅探，自动在 RAW / XPS / RENDER 之间选择（原生 PDL 字节流一律 RAW，其余走 RENDER 由驱动程序转换）。
+- **安卓友好的 mDNS**：同时公告 `_pdl-datastream._tcp` 与 `_printer._tcp` 两种服务，名称符合 RFC 6763 规范（Android NSD / Mopria 必需），组播锁定物理网卡避免被 VPN 虚拟网卡吞掉，并可在设置页独立开关。
+- **强化的 LPD 监听**：真实的成功/失败回执、负载上限、接收超时、自动创建防火墙规则，并修复停止服务时界面冻结的问题。
+- **稳定性强化**：所有客户端处理例程加上 SEH 结构化异常防护（驱动程序故障时服务器不再消失）、保留完整 DEVMODE 驱动缓冲区（修复 `CreateDCW` 访问冲突）、PDFium 渲染互斥锁、256 MiB / 30 秒资源上限。
+- **自愈式安装 BAT**：重复执行安装脚本会自动把既有队列与端口重新绑定到当前的地址与端口号。
+- **内置简体中文界面**、UTF-8 日志文件轮转、XPS/OpenXPS 数据包通过 Windows XPS 打印 API 提交。
+
+## 版本更新记录
+
+### v2.1.0.0（本分支）
+
+在上游 v2.1.0.0 基础上新增：
+
+- `AUTO` 自动打印模式：启动时驱动探测 + 打印时内容嗅探，原生 PDL 走 RAW、合规驱动走 XPS Print API、其余走 RENDER。
+- mDNS：新增 `_printer._tcp`（LPD）第二服务公告、RFC 6763 合规 FQDN 名称、组播接口锁定、设置页独立开关。
+- LPD：真实回执、负载上限、接收超时、自动防火墙规则、修复停止服务死锁。
+- 稳定性：SEH 异常防护、完整 DEVMODE 缓冲区、PDFium 渲染互斥锁、各监听器 256 MiB / 30 秒资源上限。
+- 自愈式安装 BAT：重复执行自动重绑队列与端口。
+
+### v2.1.0.0（上游）
+
+- 新增 `RENDER` 打印模式，服务器端通过队列自身的驱动程序渲染，支持喷墨、标签与热敏收据打印机。
+- PDF 文档通过 PDFium 于运行时加载并栅格化，该依赖为可选项。
+- 新增 HTTP 打印 API（`POST /api/print` 与 `GET /api/printers`）。
+- 新增 mDNS 自动发现公告。
+- 新增可选的 LPD 监听器（RFC 1179）。
+
+### v2.0.0.0
+
+- 本版本为重大架构更新，主程序已从原本的 Python 打包版本重写为 C++ 原生版本。
+- 主程序改以 C++ 重新编译，启动速度与操作反应更快。
+- 主程序文件体积大幅降低，从最初版本约 25MB 降至约 728KB。
+- 移除对 Python Runtime 的依赖，运行环境更干净。
+- 提升 Windows 7 兼容性，较原本 Python 打包版本更不容易受到缺少组件或 Runtime 影响。
+- 维持 Windows 7 / 10 / 11 支持。
+- 支持自定义 `.txt` 语言文件。
+- 内置 `tw` 与 `en` 语言模板会自动生成，用户也可自行新增 `jp.txt` 等外部语言文件来切换界面语言。
+
+### v1.2.0.0
+
+- 支持 WIN7 服务器端搭建与打包打印机驱动程序。
+- 支持 WIN7 客户端自动执行配置文件与驱动包安装。
+- Python 打包版本末期已大幅减少主程序文件体积。
+
+### v1.1.1.0
+
+- 安装 BAT 改为可读的 UTF-8 明文嵌入式脚本流程。
+
+### v1.1.0.0
+
+- 新增内置网页，可下载安装 BAT 与驱动程序。
+
+### v1.0.0.0
+
+- PrtEasyServer 首次公开版本。
+
+## 功能特色
+
+- 原生 C++ x64 主程序
+- RAW 9100 TCP/IP 打印机共享
+- 每台打印机独立打印模式：RAW / XPS / RENDER / AUTO
+- PDF、图片与文字经队列自身驱动程序渲染（PDFium + GDI+）
+- HTTP 打印 API（`POST /api/print`），客户端免驱动程序
+- mDNS (Bonjour) 自动发现，含 `_pdl-datastream._tcp` 与 `_printer._tcp`
+- 可选 LPD 监听器（RFC 1179）
+- 内置安装设置网页
+- 自动生成安装 BAT（重复执行自动重绑）
+- 驱动程序下载与安装流程
+- 支持 Windows 7 / 10 / 11
+- 主程序不再依赖 Python Runtime
+- 支持外部 `.txt` 自定义语言文件
+
+## 仓库结构
+
+- `src/`：主要 C++ Win32 源代码
+- `assets/printer.ico`：原生资源文件使用的程序图标
+- `assets/screenshots/`：README 界面截图
+- `third_party/pdfium/`：运行时加载的 PDFium DLL 与授权文件
+- `tools/`：辅助脚本与独立测试程序
+- `build-windows10.cmd` + `BUILDING-WINDOWS10.md`：Windows 10 x64 编译路径
+
+## 中文界面截图
+
+### 中文主界面
+
+![中文主界面](./assets/screenshots/ui-zh-tw-main-v2.png)
+
+### 中文网页
+
+![中文网页](./assets/screenshots/web-zh-tw-v2.png)
+
+### 设置页
+
+![设置页](./assets/screenshots/settings-zh-tw-v2.png)
+
+## 自定义语言示例：手动新增 `jp.txt`
+
+以下界面演示的是手动新增 `jp.txt` 后切换出的日文界面。也就是说，你可以自行创建其他 `.txt` 语言文件，配合 PrtEasyServer 做额外语言切换，不需要重新编译主程序。
+
+### 日文主界面（手动创建 `jp.txt`）
+
+![日文主界面（手动创建 jp.txt）](./assets/screenshots/ui-ja-custom-jp-txt-v2.png)
+
+### 日文设置页（手动创建 `jp.txt`）
+
+![日文设置页（手动创建 jp.txt）](./assets/screenshots/settings-ja-custom-jp-txt-v2.png)
+
+### 日文网页（手动创建 `jp.txt`）
+
+![日文网页（手动创建 jp.txt）](./assets/screenshots/web-ja-custom-jp-txt-v2.png)
+
+## 下载
+
+- 本分支：以 `build-windows10.cmd` 从源代码编译（见 [BUILDING-WINDOWS10.md](./BUILDING-WINDOWS10.md)）。
+- 上游发行版：[Terence0816/Windows-PrtEasyServer Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases)
+
+## 搜索关键词
+
+Windows RAW 9100 打印机服务器、C++ 打印机服务器、TCP/IP 打印机服务器、Windows 网络打印机服务器、USB 打印机共享、IP 打印机安装、AUTO 自动打印模式、PDF 打印 PDFium、Bonjour mDNS 打印机发现、LPD RFC 1179、HTTP 打印 API、自定义语言 txt、无 SMB 共享、Win32 打印机共享
+
+## 原作与致谢
+
+本项目基于 PrinterOne 修改而成。  
+原始项目：https://github.com/xtieume/PrinterOne  
+Original Copyright (c) 2025 xtieume@gmail.com
+
+## 授权
+
+本仓库目前使用 MIT License，详见 [LICENSE](./LICENSE)。
 
