@@ -302,6 +302,22 @@ The screenshots below show a Japanese UI created by manually adding a custom `jp
 - This fork: build from source with `build-windows10.cmd` (see [BUILDING-WINDOWS10.md](./BUILDING-WINDOWS10.md)).
 - Upstream releases: [Terence0816/Windows-PrtEasyServer Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases)
 
+### Deploying to another PC
+
+The build statically links the C runtime (`/MT`), so `PrtEasyServer-Custom.exe`
+runs on any Windows 7+ x64 machine without installing the VC++ Redistributable.
+To keep PDF printing working, copy `pdfium.dll` next to the executable:
+
+```
+PrtEasyServer\
+├── PrtEasyServer-Custom.exe
+└── pdfium.dll
+```
+
+`pdfium.dll` is an optional dependency: without it the server starts normally
+and RAW/PCL/PostScript printing keeps working, only PDF rendering is disabled
+(the reason is written to the log).
+
 ## Search Keywords
 
 Windows RAW 9100 print server, native C++ print server, TCP/IP printer server, Windows network print server, local USB printer sharing, IP printer setup, no SMB printer sharing, AUTO print mode, PDF printing PDFium, Bonjour mDNS printer discovery, LPD RFC 1179, HTTP print API, custom language txt, Win32 print server
@@ -444,6 +460,21 @@ PrtEasyServer 現在已改為原生 C++ 版本，是一個 Windows RAW 9100 網�
 - 本分支：以 `build-windows10.cmd` 自原始碼編譯（見 [BUILDING-WINDOWS10.md](./BUILDING-WINDOWS10.md)）。
 - 上游發行版：[Terence0816/Windows-PrtEasyServer Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases)
 
+### 部署到其他電腦
+
+建置採用 C 執行階段靜態連結（`/MT`），`PrtEasyServer-Custom.exe` 可直接在
+任何 Windows 7 以上 x64 電腦執行，無需安裝 VC++ Redistributable。若需保留
+PDF 列印功能，請將 `pdfium.dll` 一併複製到主程式旁：
+
+```
+PrtEasyServer\
+├── PrtEasyServer-Custom.exe
+└── pdfium.dll
+```
+
+`pdfium.dll` 為可選依賴：缺少它時伺服器仍可正常啟動，RAW/PCL/PostScript
+列印不受影響，只有 PDF 轉譯功能停用（原因會寫入記錄檔）。
+
 ## 搜尋關鍵字
 
 Windows RAW 9100 印表機伺服器、C++ 印表機伺服器、TCP/IP 印表機伺服器、Windows 網路印表機伺服器、USB 印表機分享、IP 印表機安裝、AUTO 自動列印模式、PDF 列印 PDFium、Bonjour mDNS 印表機探索、LPD RFC 1179、HTTP 列印 API、自定義語言 txt、無 SMB 分享、Win32 印表機分享
@@ -585,6 +616,21 @@ PrtEasyServer 现已改为原生 C++ 版本，是一个 Windows RAW 9100 网络�
 
 - 本分支：以 `build-windows10.cmd` 从源代码编译（见 [BUILDING-WINDOWS10.md](./BUILDING-WINDOWS10.md)）。
 - 上游发行版：[Terence0816/Windows-PrtEasyServer Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases)
+
+### 部署到其他电脑
+
+构建采用 C 运行库静态链接（`/MT`），`PrtEasyServer-Custom.exe` 可直接在
+任何 Windows 7 及以上 x64 电脑运行，无需安装 VC++ Redistributable。如需保留
+PDF 打印功能，请将 `pdfium.dll` 一并复制到主程序同目录：
+
+```
+PrtEasyServer\
+├── PrtEasyServer-Custom.exe
+└── pdfium.dll
+```
+
+`pdfium.dll` 为可选依赖：缺少它时服务器仍可正常启动，RAW/PCL/PostScript
+打印不受影响，仅 PDF 渲染功能停用（原因会写入日志）。
 
 ## 搜索关键词
 
