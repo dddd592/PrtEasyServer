@@ -488,6 +488,11 @@ LRESULT MainWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
                         OpenUrlInBrowser(L"https://github.com/Terence0816/Windows-PrtEasyServer");
                     }
                     break;
+                case IdAboutForkLink:
+                    if (HIWORD(wParam) == STN_CLICKED) {
+                        OpenUrlInBrowser(L"https://github.com/dddd592/PrtEasyServer");
+                    }
+                    break;
                 case IdMinimizeToTrayCheck:
                     minimizeToTray_ = (::SendMessageW(minimizeToTrayCheck_, BM_GETCHECK, 0, 0) == BST_CHECKED);
                     break;
@@ -511,7 +516,7 @@ LRESULT MainWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
             HDC dc = reinterpret_cast<HDC>(wParam);
             HWND control = reinterpret_cast<HWND>(lParam);
             HWND parent = ::GetParent(control);
-            if (control == aboutGithubLink_) {
+            if (control == aboutGithubLink_ || control == aboutForkLink_) {
                 ::SetBkMode(dc, TRANSPARENT);
                 ::SetBkColor(dc, ::GetSysColor(COLOR_BTNFACE));
                 ::SetTextColor(dc, RGB(0, 102, 204));
@@ -545,7 +550,7 @@ LRESULT MainWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
         case WM_CTLCOLORBTN:
             return reinterpret_cast<LRESULT>(::GetSysColorBrush(COLOR_BTNFACE));
         case WM_SETCURSOR:
-            if (reinterpret_cast<HWND>(wParam) == aboutGithubLink_) {
+            if (reinterpret_cast<HWND>(wParam) == aboutGithubLink_ || reinterpret_cast<HWND>(wParam) == aboutForkLink_) {
                 HCURSOR hand = ::LoadCursorW(nullptr, IDC_HAND);
                 if (hand != nullptr) {
                     ::SetCursor(hand);
@@ -745,6 +750,10 @@ void MainWindow::CreateSettingsPageControls() {
     aboutGithubLink_ = ::CreateWindowExW(0, L"STATIC", L"",
                                          WS_CHILD | WS_VISIBLE | WS_TABSTOP | SS_NOTIFY,
                                          0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdAboutGithubLink), instance_, nullptr);
+    aboutForkLabelStatic_ = CreateLabel(settingsPage_, L"");
+    aboutForkLink_ = ::CreateWindowExW(0, L"STATIC", L"",
+                                       WS_CHILD | WS_VISIBLE | WS_TABSTOP | SS_NOTIFY,
+                                       0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdAboutForkLink), instance_, nullptr);
     aboutLegacyHeaderStatic_ = CreateLabel(settingsPage_, L"");
     aboutLegacyUrlStatic_ = CreateLabel(settingsPage_, L"");
     aboutLegacyCopyrightStatic_ = CreateLabel(settingsPage_, L"");
@@ -752,11 +761,12 @@ void MainWindow::CreateSettingsPageControls() {
 
     for (HWND control : {appSettingsFrame_, minimizeToTrayCheck_, enableLpdCheck_, lpdPortLabel_, lpdPortEdit_, enableMdnsCheck_, languageFrame_, languageLabel_, languageCombo_, applyLanguageButton_,
                          aboutFrame_, aboutTitleStatic_, aboutVersionStatic_, aboutCopyrightStatic_, aboutGithubLabelStatic_,
-                         aboutGithubLink_, aboutLegacyHeaderStatic_, aboutLegacyUrlStatic_, aboutLegacyCopyrightStatic_, aboutSummaryStatic_}) {
+                         aboutGithubLink_, aboutForkLabelStatic_, aboutForkLink_, aboutLegacyHeaderStatic_, aboutLegacyUrlStatic_, aboutLegacyCopyrightStatic_, aboutSummaryStatic_}) {
         ApplyFont(control);
     }
     if (linkFont_ != nullptr) {
         ::SendMessageW(aboutGithubLink_, WM_SETFONT, reinterpret_cast<WPARAM>(linkFont_), TRUE);
+        ::SendMessageW(aboutForkLink_, WM_SETFONT, reinterpret_cast<WPARAM>(linkFont_), TRUE);
     }
 
     ::SendMessageW(printerCombo_, CB_SETMINVISIBLE, 12, 0);
@@ -857,10 +867,12 @@ void MainWindow::LayoutSettingsPage(int width, int height) {
     ::MoveWindow(aboutCopyrightStatic_, aboutLeft, aboutTop + 76, aboutWidth, 20, TRUE);
     ::MoveWindow(aboutGithubLabelStatic_, aboutLeft, aboutTop + 98, 56, 20, TRUE);
     ::MoveWindow(aboutGithubLink_, aboutLeft + 58, aboutTop + 96, aboutWidth - 60, 24, TRUE);
-    ::MoveWindow(aboutLegacyHeaderStatic_, aboutLeft, aboutTop + 136, aboutWidth, 20, TRUE);
-    ::MoveWindow(aboutLegacyUrlStatic_, aboutLeft, aboutTop + 158, aboutWidth, 20, TRUE);
-    ::MoveWindow(aboutLegacyCopyrightStatic_, aboutLeft, aboutTop + 180, aboutWidth, 20, TRUE);
-    ::MoveWindow(aboutSummaryStatic_, aboutLeft, aboutTop + 226, aboutWidth, 48, TRUE);
+    ::MoveWindow(aboutForkLabelStatic_, aboutLeft, aboutTop + 124, 56, 20, TRUE);
+    ::MoveWindow(aboutForkLink_, aboutLeft + 58, aboutTop + 122, aboutWidth - 60, 24, TRUE);
+    ::MoveWindow(aboutLegacyHeaderStatic_, aboutLeft, aboutTop + 160, aboutWidth, 20, TRUE);
+    ::MoveWindow(aboutLegacyUrlStatic_, aboutLeft, aboutTop + 182, aboutWidth, 20, TRUE);
+    ::MoveWindow(aboutLegacyCopyrightStatic_, aboutLeft, aboutTop + 204, aboutWidth, 20, TRUE);
+    ::MoveWindow(aboutSummaryStatic_, aboutLeft, aboutTop + 250, aboutWidth, 48, TRUE);
 }
 
 void MainWindow::ShowActiveTab() {
@@ -925,6 +937,8 @@ void MainWindow::ApplyTranslations() {
     ::SetWindowTextW(aboutCopyrightStatic_, L"Copyright (c) 2026 Terence0816");
     ::SetWindowTextW(aboutGithubLabelStatic_, L"GitHub:");
     ::SetWindowTextW(aboutGithubLink_, L"https://github.com/Terence0816/Windows-PrtEasyServer");
+    ::SetWindowTextW(aboutForkLabelStatic_, traditionalChinese ? L"本專案分支：" : (chineseUi ? L"本项目分支：" : L"This fork:"));
+    ::SetWindowTextW(aboutForkLink_, L"https://github.com/dddd592/PrtEasyServer");
     ::SetWindowTextW(aboutLegacyHeaderStatic_, chineseUi ? (traditionalChinese ? L"\u57fa\u65bc PrinterOne \u4fee\u6539\uff1a" : L"基于 PrinterOne 修改：") : L"Based on PrinterOne:");
     ::SetWindowTextW(aboutLegacyUrlStatic_, L"https://github.com/xtieume/PrinterOne");
     ::SetWindowTextW(aboutLegacyCopyrightStatic_, L"Original Copyright (c) 2025 xtieume@gmail.com");

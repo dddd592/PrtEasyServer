@@ -40,6 +40,7 @@ private:
         IdLanguageCombo,
         IdApplyLanguageButton,
         IdAboutGithubLink,
+        IdAboutForkLink,
         IdEnableLpdCheck,
         IdLpdPortEdit,
         IdEnableMdnsCheck,
@@ -178,6 +179,8 @@ private:
     HWND aboutCopyrightStatic_ = nullptr;
     HWND aboutGithubLabelStatic_ = nullptr;
     HWND aboutGithubLink_ = nullptr;
+    HWND aboutForkLabelStatic_ = nullptr;
+    HWND aboutForkLink_ = nullptr;
     HWND aboutLegacyHeaderStatic_ = nullptr;
     HWND aboutLegacyUrlStatic_ = nullptr;
     HWND aboutLegacyCopyrightStatic_ = nullptr;
