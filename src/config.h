@@ -5,7 +5,7 @@
 struct PrinterConfigEntry {
     std::wstring printerName;
     int port = 9100;
-    std::wstring mode = L"raw"; // "raw", "xps", "render" or "auto" (auto resolves per job)
+    std::wstring mode = L"auto"; // "raw", "xps", "render" or "auto" (auto resolves per job); auto is the default
 };
 
 // Maps a user supplied mode string onto one of the supported modes.

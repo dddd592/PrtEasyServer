@@ -17,7 +17,7 @@ struct MdnsPrinterEntry {
     int port = 9100;
     // "raw" publishes the classic pdl-datastream service, "xps" and "render"
     // publish the same service type but note the mode in the TXT record.
-    std::wstring mode = L"raw";
+    std::wstring mode = L"auto";
     // When the LPD listener is active this carries its port so each printer
     // is additionally advertised as an RFC 1179 "_printer._tcp" service.
     // Android apps such as PrinterShare browse that type, while many of them

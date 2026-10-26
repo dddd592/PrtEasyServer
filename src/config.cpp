@@ -42,10 +42,12 @@ std::wstring ConfigStore::EscapeRegex(const std::wstring& input) {
 
 std::wstring NormalizePrintMode(const std::wstring& mode) {
     const std::wstring normalized = ToLowerCopy(Trim(mode));
-    if (normalized == L"auto") return L"auto";
+    if (normalized == L"raw") return L"raw";
     if (normalized == L"xps") return L"xps";
     if (normalized == L"render") return L"render";
-    return L"raw";
+    // Empty, missing or unrecognised values fall back to AUTO, the default
+    // print mode of this fork.
+    return L"auto";
 }
 
 std::wstring PrintModeDisplayName(const std::wstring& mode) {

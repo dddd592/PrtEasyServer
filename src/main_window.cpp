@@ -647,7 +647,7 @@ void MainWindow::CreateServerPageControls() {
     ::SendMessageW(modeCombo_, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"XPS"));
     ::SendMessageW(modeCombo_, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"RENDER"));
     ::SendMessageW(modeCombo_, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"AUTO"));
-    ::SendMessageW(modeCombo_, CB_SETCURSEL, 0, 0);
+    ::SendMessageW(modeCombo_, CB_SETCURSEL, 3, 0); // AUTO is the default print mode
     addUpdateButton_ = ::CreateWindowExW(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
                                          0, 0, 10, 10, serverPage_, reinterpret_cast<HMENU>(IdAddUpdateButton), instance_, nullptr);
     modifyButton_ = ::CreateWindowExW(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
@@ -1146,7 +1146,7 @@ void MainWindow::ResetPrinterEditor() {
         ::SendMessageW(printerCombo_, CB_SETCURSEL, 0, 0);
     }
     SetSuggestedNextPrinterPort();
-    if (modeCombo_) ::SendMessageW(modeCombo_, CB_SETCURSEL, 0, 0);
+    if (modeCombo_) ::SendMessageW(modeCombo_, CB_SETCURSEL, 3, 0); // AUTO is the default print mode
 }
 
 int MainWindow::SuggestNextPrinterPort() const {
