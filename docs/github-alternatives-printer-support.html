@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub 同类打印服务器项目调研：支持更多打印机的方案对比</title>
+<style>
+  :root{
+    --bg:#ffffff; --bg2:#f7f7f5; --bg3:#f1efe8;
+    --tx:#1d1d1b; --tx2:#5f5e5a; --tx3:#888780;
+    --bd:#e2e0d9; --bd2:#d3d1c7;
+    --blue:#185fa5; --blue-bg:#e6f1fb; --blue-bd:#85b7eb;
+    --teal:#0f6e56; --teal-bg:#e1f5ee; --teal-bd:#5dcaa5;
+    --amber:#854f0b; --amber-bg:#faeeda; --amber-bd:#ef9f27;
+    --red:#a32d2d; --red-bg:#fcebeb; --red-bd:#f09595;
+    --gray:#5f5e5a; --gray-bg:#f1efe8; --gray-bd:#b4b2a9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:0;background:var(--bg2);color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:14px;line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 80px}
+  header{border-bottom:1px solid var(--bd2);padding-bottom:26px;margin-bottom:34px}
+  h1{font-size:25px;font-weight:600;margin:0 0 10px;letter-spacing:-.2px}
+  .sub{color:var(--tx2);font-size:14px;margin:0}
+  .meta{margin-top:14px;font-size:12.5px;color:var(--tx3)}
+  h2{font-size:19px;font-weight:600;margin:44px 0 14px;padding-left:11px;border-left:3px solid var(--blue)}
+  h3{font-size:15.5px;font-weight:600;margin:28px 0 10px}
+  p{margin:0 0 13px}
+  ul,ol{margin:0 0 14px;padding-left:22px}
+  li{margin-bottom:6px}
+  code{background:var(--bg3);padding:1.5px 6px;border-radius:4px;font-size:12.5px;
+    font-family:"SF Mono",Consolas,Monaco,monospace;color:#7a3e00}
+  .card{background:var(--bg);border:1px solid var(--bd);border-radius:11px;padding:20px 24px;margin-bottom:16px}
+  .note{background:var(--blue-bg);border:1px solid var(--blue-bd);border-left:4px solid var(--blue);
+    border-radius:8px;padding:15px 18px;margin:16px 0}
+  .warn{background:var(--amber-bg);border:1px solid var(--amber-bd);border-left:4px solid var(--amber);
+    border-radius:8px;padding:15px 18px;margin:16px 0}
+  .danger{background:var(--red-bg);border:1px solid var(--red-bd);border-left:4px solid var(--red);
+    border-radius:8px;padding:15px 18px;margin:16px 0}
+  table{width:100%;border-collapse:collapse;background:var(--bg);border:1px solid var(--bd);
+    border-radius:9px;overflow:hidden;margin:16px 0 22px;font-size:13px}
+  th{background:var(--bg3);text-align:left;padding:11px 12px;font-weight:600;
+    border-bottom:1px solid var(--bd2);font-size:12.5px;color:var(--tx2);vertical-align:bottom}
+  td{padding:11px 12px;border-bottom:1px solid var(--bd);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tag{display:inline-block;padding:1.5px 8px;border-radius:20px;font-size:11.5px;
+    font-weight:500;white-space:nowrap;border:1px solid}
+  .t-blue{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd)}
+  .t-teal{background:var(--teal-bg);color:var(--teal);border-color:var(--teal-bd)}
+  .t-amber{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-bd)}
+  .t-gray{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-bd)}
+  .t-red{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+  .repo{font-family:"SF Mono",Consolas,monaco,monospace;font-size:12.5px;color:var(--blue);
+    word-break:break-all}
+  .repo a{color:var(--blue);text-decoration:none}
+  .repo a:hover{text-decoration:underline}
+  .stars{font-weight:600;font-variant-numeric:tabular-nums}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .proj{background:var(--bg);border:1px solid var(--bd);border-radius:11px;padding:18px 20px}
+  .proj.featured{border:2px solid var(--blue)}
+  .proj h4{margin:0 0 4px;font-size:15px;font-weight:600}
+  .proj .line{font-size:13px;color:var(--tx2);margin-bottom:10px}
+  .proj ul{font-size:13px;color:var(--tx);margin:10px 0 0}
+  .proj .meta-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+  .foot{margin-top:52px;padding-top:20px;border-top:1px solid var(--bd2);font-size:12.5px;color:var(--tx3)}
+  .rank{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;
+    border-radius:50%;background:var(--blue);color:#fff;font-size:11.5px;font-weight:600;margin-right:7px}
+  .kbd{background:var(--bg3);border:1px solid var(--bd2);border-bottom-width:2px;border-radius:4px;
+    padding:1px 5px;font-size:11.5px;font-family:Consolas,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>GitHub 同类打印服务器项目调研</h1>
+  <p class="sub">以 <code>Windows-PrtEasyServer</code>（当前项目）为基准，寻找能<strong>支持更多打印机型号</strong>的开源同类实现</p>
+  <p class="meta">调研日期：2026-10-23 · 数据源：GitHub Repository Search API + 各项目 README 原文核实 · 全部 Star / 更新时间于当日实时拉取</p>
+</header>
+
+<h2>一、先厘清：当前项目「打印机覆盖」的技术天花板</h2>
+
+<div class="card">
+  <p>通读 <code>src/printer_server.cpp</code> 的 <code>PrintRaw()</code> 后可以确认，PrtEasyServer 目前只有<strong>两条</strong>数据通路，且二者都不改变「字节透传」这一本质：</p>
+  <ul>
+    <li><strong>RAW 通路（默认）</strong>：<code>StartDocPrinter(RAW)</code> → <code>WritePrinter</code>，把 TCP 9100 收到的字节原样塞进打印队列。客户端必须<em>自己</em>产出 PCL / PostScript / 厂商 RAW 格式的字节流。</li>
+    <li><strong>XPS 通路（自定义分支新增）</strong>：<code>StartXpsPrintJob</code>，走 Windows XPS 打印 API。覆盖面比 RAW 宽，但要求客户端提交的必须是完整 XPS/OpenXPS 包。</li>
+  </ul>
+  <p style="margin-bottom:0">关键结论：<strong>服务端从不做渲染</strong>。打印机型号能否被支持，取决于「该机型的固件能否直接消化 RAW 字节流」。</p>
+</div>
+
+<table>
+  <thead>
+    <tr><th style="width:150px">打印机类别</th><th style="width:120px">典型型号</th><th style="width:110px">RAW 直通是否可用</th><th>原因</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PCL / PS 硬件激光机</td><td>HP LaserJet 1020 / P1005、Canon LBP 2900/3000、Brother HL</td>
+      <td><span class="tag t-teal">可用</span></td>
+      <td>固件原生解释 PCL/PostScript，RAW 字节流即最终打印语言</td>
+    </tr>
+    <tr>
+      <td>喷墨 / 墨仓一体机</td><td>Epson L3150、Canon PIXMA MG2541、HP DeskJet</td>
+      <td><span class="tag t-red">不可用</span></td>
+      <td>只有 GDI/Raster 驱动，必须由驱动把页面渲染成位图，RAW 字节流无意义</td>
+    </tr>
+    <tr>
+      <td>标签机</td><td>Zebra ZD220D / ZT411、Brother QL-820NWB、TSC TTP-244</td>
+      <td><span class="tag t-red">不可用</span></td>
+      <td>需要 ZPL / TSPL 专有指令集，不是 PCL/PS</td>
+    </tr>
+    <tr>
+      <td>小票 / 热敏机</td><td>Epson TM-T88、Star TSP650II、Generic ESC/POS</td>
+      <td><span class="tag t-red">不可用</span></td>
+      <td>需要 ESC/POS 或 StarPRNT 指令集</td>
+    </tr>
+    <tr>
+      <td>Host-based 机（CAPT）</td><td>Canon LBP 2900/3000 部分固件</td>
+      <td><span class="tag t-amber">边缘</span></td>
+      <td>PCL 可用但部分高级特性失效；纯 host-based 机必须位图渲染</td>
+    </tr>
+    <tr>
+      <td>绘图仪 / 3D 打印机</td><td>AxiDraw、Flashforge</td>
+      <td><span class="tag t-red">不可用</span></td>
+      <td>G-code / 矢量指令，需专用解析器</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>一句话诊断：</strong>PrtEasyServer 是「<strong>RAW 透传服务器</strong>」，不是「打印服务器」。它把「打印机型号支持」的责任完全推给了<strong>客户端</strong>——客户端必须装对应厂商驱动并生成 PCL/PS 字节流。因此它天然无法服务喷墨机、标签机、小票机，也天然无法服务 iOS / macOS（AirPrint 客户端产出的是 URF/Raster/PDF，不是 PCL）。</div>
+
+<div class="warn">
+  <strong>另一层限制：客户端平台。</strong>即便机型是 PCL 激光机，macOS 与 iOS 也没有「生成 PCL 字节流」的能力（AirPrint 走的是 URF/Raster 或 PDF）。PrtEasyServer 自带的 BAT 安装脚本是让客户端<strong>安装厂商驱动 + 建 TCP/IP 端口</strong>，本质仍是传统「有客户端驱动」的模型——这正是它避免了 SMB 共享的 0x0000011b 问题，但也把 macOS/手机用户排除在外。
+</div>
+
+<h2>二、结论：能「支持更多打印机」的三条技术路线</h2>
+
+<h3>路线 A · 服务端渲染 + IPP/AirPrint（覆盖面最广，首选）</h3>
+<p>让<strong>服务器</strong>用本机打印驱动把 PDF / 图片渲染成位图或 PCL，再通过标准 IPP Everywhere / AirPrint 分发。客户端<strong>零驱动</strong>，手机、Mac、Linux、Windows 全部原生可打，且任何已在 Windows 安装驱动的打印机（喷墨、标签、小票）都能吃。</p>
+<p>这条路线是本次调研中<strong>唯一能真正突破「打印机型号天花板」</strong>的思路——它把渲染责任从客户端搬到了服务端。</p>
+
+<h3>路线 B · 厂商专有指令集（覆盖某一类打印机，不是通用方案）</h3>
+<p>针对标签机 / 小票机，直接实现 ZPL、TSPL、ESC/POS、StarPRNT 指令集并暴露 REST API。支持面窄但很深，是 A 的补充而非替代。</p>
+
+<h3>路线 C · 硬件桥接（脱离 PC，独立运行）</h3>
+<p>ESP32-S3 等 MCU 做 USB Host，把打印机直接变成网络打印机（IPP / RAW / 专有协议）。成本低、断电即用，但渲染能力弱、支持的驱动有限。</p>
+
+<h2>三、推荐项目清单</h2>
+
+<h3>A 组 · 与 PrtEasyServer 最同类，且打印机覆盖更广 <span class="tag t-blue">优先参考</span></h3>
+
+<div class="grid2">
+
+  <div class="proj featured">
+    <h4><span class="rank">1</span>Windows-AirPrint-Bridge</h4>
+    <div class="line repo"><a href="https://github.com/salmanasmat/Windows-AirPrint-Bridge" target="_blank">salmanasmat/Windows-AirPrint-Bridge</a></div>
+    <p style="font-size:13px;margin:0 0 4px">把任意 Windows 打印机变成 AirPrint + IPP 打印服务，客户端零驱动。<strong>路线 A 的典型代表。</strong></p>
+    <ul>
+      <li>用 <code>PyMuPDF</code> 服务端渲染 PDF，绕开 <code>ShellExecute printto</code> 在 Edge 为默认阅读器时的失效问题</li>
+      <li>解析 IPP <code>media</code> 属性（A4/A5/A6/4×6" 标签），按作业设置 Windows 打印机 <code>DEVMODE</code></li>
+      <li>按打印机原生 DPI 做 <strong>1:1 物理尺寸渲染</strong>，修复热敏标签机（如 Zebra ZD220D）打印被缩小的问题</li>
+      <li>完整实现 mDNS <code>_ipp._tcp</code> 与 <code>_universal._sub._ipp._tcp</code> 广播，通过 iOS 16–18 严格校验</li>
+      <li>自研 HTTP/1.1 服务端处理 <code>Expect: 100-continue</code> 与 chunked 传输</li>
+      <li>支持多份数、倒序出纸（面朝上机型）、横竖版自动旋转</li>
+    </ul>
+    <div class="meta-row">
+      <span class="tag t-gray">Python</span><span class="tag t-gray">GPL v3</span>
+      <span class="tag t-teal">AirPrint</span><span class="tag t-teal">IPP</span>
+      <span class="tag t-teal">mDNS</span><span class="tag t-amber">单打印机</span>
+      <span class="stars">20 ★</span>
+    </div>
+  </div>
+
+  <div class="proj featured">
+    <h4><span class="rank">2</span>ZPrint</h4>
+    <div class="line repo"><a href="https://github.com/kzxl/ZPrint" target="_blank">kzxl/ZPrint</a></div>
+    <p style="font-size:13px;margin:0 0 4px">C# 实现的零依赖网络打印桥 + RFC 8011 IPP 服务器，<strong>专攻 host-based / CAPT 老激光机</strong>——正是 RAW 透传搞不定的机型。</p>
+    <ul>
+      <li>目标机型明确点名 Canon LBP 2900/3000、HP LaserJet 1020/P1005、Epson 等「不死老兵」</li>
+      <li>走 <code>winspool.drv</code> RAW spooling，渲染后位图流以 ZeroLz4 协议压缩传输（宣称 1.6 GB/s）</li>
+      <li>线程安全原子 FIFO 队列，避免 Windows spooler 锁死与作业交错</li>
+      <li>UDP 9201 广播，1.5 秒内完成局域网发现</li>
+      <li>零外部 NuGet 依赖，多目标框架 .NET 8 / Standard 2.0 / Framework 4.6.2</li>
+    </ul>
+    <div class="meta-row">
+      <span class="tag t-gray">C#</span><span class="tag t-gray">MIT</span>
+      <span class="tag t-teal">IPP</span><span class="tag t-teal">AirPrint</span>
+      <span class="tag t-amber">单打印机</span>
+      <span class="stars">0 ★（新项目，2026-09）</span>
+    </div>
+  </div>
+
+  <div class="proj featured">
+    <h4><span class="rank">3</span>MFP Print &amp; Scan Server</h4>
+    <div class="line repo"><a href="https://github.com/bogdik/mfp-print-scan-server" target="_blank">bogdik/mfp-print-scan-server</a></div>
+    <p style="font-size:13px;margin:0 0 4px">功能最全的路线 A 实现：打印 + 扫描一体，<strong>Windows / Linux 双平台</strong>。</p>
+    <ul>
+      <li>IPP Everywhere + <strong>AirScan (eSCL)</strong> 扫描服务，macOS / iOS / Android 原生可扫</li>
+      <li>打印选项（纸张、类型、质量、彩色、双面）<strong>从驱动动态读取</strong>，换打印机自动适配，不硬编码</li>
+      <li>服务端用 PDFium / Pillow 渲染，打印不依赖客户端装什么软件</li>
+      <li>浏览器打印 UI 带真实预览；支持区域框选、分辨率/格式选择、多页合并 PDF</li>
+      <li>Canon PIXMA MG2541 真机验证（含喷墨机，RAW 方案完全无法覆盖的机型）</li>
+      <li>维护功能：测试页、Canon 喷嘴检查与清洗</li>
+    </ul>
+    <div class="meta-row">
+      <span class="tag t-gray">Python</span><span class="tag t-gray">MIT</span>
+      <span class="tag t-teal">IPP</span><span class="tag t-teal">AirPrint</span>
+      <span class="tag t-teal">AirScan</span>
+      <span class="tag t-amber">多打印机</span>
+      <span class="stars">0 ★（2026-09）</span>
+    </div>
+  </div>
+
+  <div class="proj">
+    <h4><span class="rank">4</span>PrintBridgeCore</h4>
+    <div class="line repo"><a href="https://github.com/Ali7med/PrintBridgeCore" target="_blank">Ali7med/PrintBridgeCore</a></div>
+    <p style="font-size:13px;margin:0 0 4px">.NET 10 轻量打印服务器，Web UI + REST API 双入口，支持多种数据格式。</p>
+    <ul>
+      <li>支持静默打印 PDF、图片、ZPL、RAW</li>
+      <li>Token 鉴权，适合暴露到非可信网络</li>
+      <li>与 PrtEasyServer 同为 C#/.NET 体系，技术栈最易迁移</li>
+    </ul>
+    <div class="meta-row">
+      <span class="tag t-gray">C#</span><span class="tag t-gray">无 License</span>
+      <span class="tag t-teal">RAW</span><span class="tag t-teal">ZPL</span>
+      <span class="tag t-teal">PDF</span>
+      <span class="stars">1 ★</span>
+    </div>
+  </div>
+
+  <div class="proj">
+    <h4><span class="rank">5</span>Print Center</h4>
+    <div class="line repo"><a href="https://github.com/YakirOren/Print-Center" target="_blank">YakirOren/Print-Center</a></div>
+    <p style="font-size:13px;margin:0 0 4px">打印机管理仪表盘 + IPP 代理，支持按规则对打印作业采取动作。</p>
+    <ul>
+      <li>适合需要「多打印机集中管控 + 作业审计」的运维场景</li>
+      <li>TypeScript / Web 技术栈</li>
+    </ul>
+    <div class="meta-row">
+      <span class="tag t-gray">TypeScript</span><span class="tag t-gray">无 License</span>
+      <span class="tag t-teal">IPP</span>
+      <span class="stars">4 ★</span>
+    </div>
+  </div>
+
+  <div class="proj">
+    <h4><span class="rank">6</span>PrinterOne <span style="font-size:12px;color:var(--tx3);font-weight:400">（上游原作）</span></h4>
+    <div class="line repo"><a href="https://github.com/xtieume/PrinterOne" target="_blank">xtieume/PrinterOne</a></div>
+    <p style="font-size:13px;margin:0 0 4px">PrtEasyServer 的<strong>原型上游</strong>，Python + Tkinter 写的综合 TCP 网络打印服务器，带 GUI 与系统托盘。</p>
+    <ul>
+      <li>想参考「Python 版实现全貌」（比 C++ 版好读）时首选</li>
+      <li>维护于 2025-08，已停止活跃更新</li>
+    </ul>
+    <div class="meta-row">
+      <span class="tag t-gray">Python</span><span class="tag t-gray">无 License</span>
+      <span class="tag t-amber">RAW 透传</span>
+      <span class="stars">81 ★</span>
+    </div>
+  </div>
+
+</div>
+
+<h3>B 组 · 特定打印机类型专用（标签机 / 小票机）</h3>
+
+<table>
+  <thead>
+    <tr><th style="width:210px">项目</th><th style="width:60px">Star</th><th style="width:85px">语言</th><th style="width:110px">目标机型</th><th>要点</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="repo"><a href="https://github.com/mrothenbuecher/zpl-rest" target="_blank">mrothenbuecher/zpl-rest</a></td>
+      <td class="num stars">122</td><td>Node.js</td><td>Zebra 标签机</td>
+      <td>本组最热门。REST API + Web UI 管理 ZPL 模板，Mustache 占位符填充，Labelary 预览，作业历史与重打</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/eljojo/estrella" target="_blank">eljojo/estrella</a></td>
+      <td class="num stars">107</td><td>Rust</td><td>Star Micronics 小票机</td>
+      <td>实现 StarPRNT 协议，React 风格组件系统 + 优化编译器，Web UI 支持照片抖动打印（JPEG/PNG/GIF/WEBP/HEIC）</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/darkterminal/escpos-printer-server" target="_blank">darkterminal/escpos-printer-server</a></td>
+      <td class="num stars">26</td><td>PHP</td><td>ESC/POS 热敏小票机</td>
+      <td>轻量专注，PHP 生态部署最省事</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/DAmesberger/BrotherPrintServer" target="_blank">DAmesberger/BrotherPrintServer</a></td>
+      <td class="num stars">23</td><td>C#</td><td>Brother 标签机</td>
+      <td>REST API 直控 Brother 标签机</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/strausmann/Label-Printer-Hub" target="_blank">strausmann/Label-Printer-Hub</a></td>
+      <td class="num stars">5</td><td>Python</td><td>Brother PT / QL 系列</td>
+      <td>多打印机队列管理 + Snipe-IT / Grocy / Spoolman 集成，插件化架构</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/kenshaw/escpos" target="_blank">kenshaw/escpos</a></td>
+      <td class="num stars">261</td><td>Go</td><td>ESC/POS 通用</td>
+      <td>库而非服务器，但打印协议实现的参考价值最高</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>C 组 · 硬件桥接（脱离 PC 独立运行）</h3>
+
+<table>
+  <thead>
+    <tr><th style="width:240px">项目</th><th style="width:60px">Star</th><th style="width:80px">平台</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="repo"><a href="https://github.com/OpenPrinting/ipp-usb" target="_blank">OpenPrinting/ipp-usb</a></td>
+      <td class="num stars">211</td><td>Linux + Go</td>
+      <td>IPP-over-USB 反向代理，官方 OpenPrinting 出品，协议实现最规范（但仅 Linux）</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/OpenPrinting/cups" target="_blank">OpenPrinting/cups</a></td>
+      <td class="num stars">1779</td><td>Linux + C</td>
+      <td>事实标准，驱动覆盖最广（配合 Gutenprint 支持大量喷墨/标签机），但需 Linux 环境</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/michaelrsweet/pappl" target="_blank">michaelrsweet/pappl</a></td>
+      <td class="num stars">348</td><td>跨平台 + C</td>
+      <td>CUPS 作者的轻量 IPP 实现，体积小、依赖少，适合嵌入式</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/WARMW00D/ESP32-S3-PrintServer" target="_blank">WARMW00D/ESP32-S3-PrintServer</a></td>
+      <td class="num stars">4</td><td>ESP32-S3 + C++</td>
+      <td>USB Host 把普通 USB 打印机变 WiFi 网络打印机</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/LoveLH/ESP32-S3-USB-PrintServer" target="_blank">LoveLH/ESP32-S3-USB-PrintServer</a></td>
+      <td class="num stars">2</td><td>ESP32-S3 + C++</td>
+      <td>同上，Raw Socket :9100 方案</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/SMe12435/ESP32S3-HP1020-PrintServer" target="_blank">SMe12435/ESP32S3-HP1020-PrintServer</a></td>
+      <td class="num stars">0</td><td>ESP32-S3 + C</td>
+      <td>HP LaserJet 1020 专用，处理 JBIG/ZjStream 压缩——典型「一台机器一个适配」</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/nomkar24/CUPS_ZEPHYR" target="_blank">nomkar24/CUPS_ZEPHYR</a></td>
+      <td class="num stars">2</td><td>ESP32-S3 + Zephyr</td>
+      <td>在 MCU 上跑完整 CUPS + PAPPL，理论覆盖面最广</td>
+    </tr>
+    <tr>
+      <td class="repo"><a href="https://github.com/dmyrenne/uprint" target="_blank">dmyrenne/uprint</a></td>
+      <td class="num stars">0</td><td>ESP32-S3</td>
+      <td>3D 打印机与 AxiDraw 笔式绘图仪专用（G-code 解析）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>D 组 · 协议抓取 / 代理（用于诊断与兼容分析）</h3>
+
+<div class="card">
+  <p class="repo" style="margin-bottom:10px"><a href="https://github.com/ghawley365/printcap" target="_blank">ghawley365/printcap</a></p>
+  <p style="margin:0">Go 实现的「网络打印抓取与代理服务器」，单进程同时支持 <code>raw/9100</code>、<code>LPR/LPD</code>、<code>IPP/IPPS</code>、<code>SNMP v1/v2c/v3</code> 与 mDNS。<span class="tag t-teal">0 ★（仓库较新）</span></p>
+  <p style="margin:8px 0 0">价值在于：<strong>它是「PrtEasyServer 该支持哪些协议」的现成对照清单</strong>。若要给 PrtEasyServer 补协议支持，这个项目的协议覆盖面可直接作为路线图。</p>
+</div>
+
+<h2>四、按需求场景的选型建议</h2>
+
+<table>
+  <thead>
+    <tr><th style="width:220px">你的需求</th><th style="width:230px">首选项目</th><th>理由</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>让喷墨机 / 标签机 / 小票机都能被 iPhone、Mac 打</td>
+      <td class="repo"><a href="https://github.com/bogdik/mfp-print-scan-server" target="_blank">mfp-print-scan-server</a></td>
+      <td>唯一同时做到 IPP + AirPrint + AirScan + 驱动选项动态读取 + 多打印机 + 真机验证的项目，且 Win/Linux 双平台</td>
+    </tr>
+    <tr>
+      <td>专攻 Canon LBP 2900 / HP 1020 这类老 host-based 激光机</td>
+      <td class="repo"><a href="https://github.com/kzxl/ZPrint" target="_blank">kzxl/ZPrint</a></td>
+      <td>目标机型与你的痛点完全重合；同为 C#，可复用现有 Win32 经验</td>
+    </tr>
+    <tr>
+      <td>最小改动、快速验证「渲染路线」是否值得做</td>
+      <td class="repo"><a href="https://github.com/salmanasmat/Windows-AirPrint-Bridge" target="_blank">Windows-AirPrint-Bridge</a></td>
+      <td>单文件 Python，DEVMODE + 1:1 DPI 渲染的细节写得最清楚，可直接抄算法</td>
+    </tr>
+    <tr>
+      <td>ERP / 仓库系统对接标签机打印</td>
+      <td class="repo"><a href="https://github.com/mrothenbuecher/zpl-rest" target="_blank">zpl-rest</a></td>
+      <td>ZPL 模板 + 占位符 + 预览 + 作业历史，Star 数最高的标签打印项目</td>
+    </tr>
+    <tr>
+      <td>门店 / 前台热敏小票机</td>
+      <td class="repo"><a href="https://github.com/eljojo/estrella" target="_blank">estrella</a></td>
+      <td>StarPRNT 协议实现最完整，含照片抖动打印</td>
+    </tr>
+    <tr>
+      <td>不想占用一台 PC / 需要 7×24 独立运行</td>
+      <td class="repo"><a href="https://github.com/nomkar24/CUPS_ZEPHYR" target="_blank">CUPS_ZEPHYR</a> / <a href="https://github.com/OpenPrinting/ipp-usb" target="_blank">ipp-usb</a></td>
+      <td>硬件方案，成本与功耗最低</td>
+    </tr>
+    <tr>
+      <td>保留 RAW 透传，仅补协议宽度</td>
+      <td class="repo"><a href="https://github.com/ghawley365/printcap" target="_blank">printcap</a></td>
+      <td>现成的协议覆盖对照表：raw/9100 + LPR/LPD + IPP/IPPS + SNMP + mDNS</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>五、给 PrtEasyServer 的升级路径建议</h2>
+
+<div class="card">
+  <p style="margin-bottom:14px">按「投入产出比」排序，建议分三步走，每一步都可以独立交付：</p>
+
+  <h3 style="margin-top:0">第 1 步 · 补齐协议宽度（低风险，立刻见效）</h3>
+  <ul>
+    <li>增加 <strong>LPR/LPD</strong>（RFC 1179）监听：老式 Unix 客户端、多数硬件打印服务器都走它</li>
+    <li>增加 <strong>IPP</strong> 最小实现：Windows 10/11 自带「Microsoft IPP Class Driver」，macOS/Linux 也能以 IPP 方式接入</li>
+    <li>增加 <strong>mDNS / Bonjour 广播</strong>（<code>_ipp._tcp</code>、<code>_printer._tcp</code>、<code>_pdl-datastream._tcp</code>）与 <strong>SNMP</strong> 状态查询，让客户端「看得见」这台服务器</li>
+    <li>参考 <code>printcap</code> 的协议清单，逐项对齐</li>
+  </ul>
+
+  <h3>第 2 步 · 引入服务端渲染（突破机型天花板的关键）</h3>
+  <ul>
+    <li>新增打印模式：<code>raw</code>（保持兼容）/ <code>xps</code>（现有）/ <code>render</code>（新增）</li>
+    <li><code>render</code> 模式流程：接收 PDF / 图片 → 按 IPP <code>media</code> 或作业参数设定 <code>DEVMODE</code> → 调用 <code>StartDocPrinter</code>(<code>RAW</code>) 并写入渲染后的位图流</li>
+    <li>渲染后端可选：<strong>Win32 GDI</strong>（无需第三方库，但 PDF 解析要自己写）或引入 <strong>PDFium / MuPDF</strong>（覆盖 PDF 场景，效果最好）</li>
+    <li>务必实现 <strong>1:1 物理尺寸 + 打印机原生 DPI</strong> 渲染，这是标签机打印被缩小的根因（参考 Windows-AirPrint-Bridge 的做法）</li>
+    <li>打印选项（纸张、类型、彩色、双面）应<strong>从驱动动态读取</strong>，而不是硬编码，这样换打印机自动适配（参考 mfp-print-scan-server）</li>
+  </ul>
+
+  <h3>第 3 步 · 生态位扩张（按需）</h3>
+  <ul>
+    <li><strong>ZPL / TSPL</strong> 指令集支持 → 打通 Zebra、Brother QL、TSC 标签机</li>
+    <li><strong>ESC/POS / StarPRNT</strong> → 打通热敏小票机</li>
+    <li><strong>AirScan (eSCL)</strong> → 把一体机变成网络扫描仪（mfp-print-scan-server 已完整实现，Windows 侧用 WIA）</li>
+    <li><strong>REST / Web 管理台</strong> → 打印作业审计、多打印机集中管理</li>
+  </ul>
+</div>
+
+<div class="danger">
+  <strong>选型时最容易踩的坑：</strong>A 组的 AirPrint 类项目（Windows-AirPrint-Bridge、ZPrint）虽然覆盖机型最广，但目前都是<strong>「共享一台打印机」</strong>——要么跟随 Windows 默认打印机，要么启动时 <code>--printer</code> 指定单台。而 PrtEasyServer 的核心卖点恰恰是<strong>多台打印机各自独立开端口、客户端用 IP:端口 区分</strong>。<br><br>
+  如果要「支持更多打印机」同时<strong>保住多打印机并行</strong>，正确做法是：<strong>保留现有每打印机一个监听端口的架构</strong>，在每个端口上叠加 IPP/AirPrint 语义（而不是引入一个新的统一服务），并给每台打印机单独跑一个 mDNS 实例标识（不同 <code>UUID</code> 与 <code>rp</code> 记录）。这样既兼容现网客户端，又能吃到新客户端生态。
+</div>
+
+<h2>六、调研方法与数据可信度说明</h2>
+
+<ul>
+  <li>通过 GitHub Repository Search API 以 <code>raw 9100 print server</code>、<code>print server</code>、<code>topic:print-server</code>、<code>airprint/ipp/lpr/zpl/escpos/starprnt</code> 等 20+ 组关键词多轮检索，按 Star 排序后逐个拉取仓库元数据与 README 原文核实</li>
+  <li>表中 Star 数、语言、License、最后提交时间均为 <strong>2026-10-23 当日实时拉取</strong>；Star 数会持续变化，请以访问当日为准</li>
+  <li>「支持更多打印机」的判定标准是<strong>是否在服务端承担渲染</strong>、<strong>是否暴露标准 IPP/AirPrint</strong>、<strong>是否实现厂商专有指令集</strong>三项，而非 README 措辞</li>
+  <li>ZPrint、mfp-print-scan-server、PrintBridgeCore 等为 2026 年新项目，Star 数低不代表质量差，但<strong>尚未经过大规模生产验证</strong>，采纳前建议先做小范围试点</li>
+</ul>
+
+<p class="foot">本报告基于 GitHub 公开数据与各项目 README 原文生成，未运行或编译其中任何项目。所有第三方项目的作者与版权归其各自所有者，本报告仅作技术选型参考。</p>
+
+</div>
+</body>
+</html>

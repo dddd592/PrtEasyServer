@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrtEasyServer v2.1.0 升级交付说明</title>
+<style>
+  :root{
+    --bg:#ffffff; --bg2:#f7f7f5; --bg3:#f1efe8;
+    --tx:#1d1d1b; --tx2:#5f5e5a; --tx3:#888780;
+    --bd:#e2e0d9; --bd2:#d3d1c7;
+    --blue:#185fa5; --blue-bg:#e6f1fb; --blue-bd:#85b7eb;
+    --teal:#0f6e56; --teal-bg:#e1f5ee; --teal-bd:#5dcaa5;
+    --amber:#854f0b; --amber-bg:#faeeda; --amber-bd:#ef9f27;
+    --red:#a32d2d; --red-bg:#fcebeb; --red-bd:#f09595;
+    --gray:#5f5e5a; --gray-bg:#f1efe8; --gray-bd:#b4b2a9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:0;background:var(--bg2);color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:14px;line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 80px}
+  header{border-bottom:1px solid var(--bd2);padding-bottom:26px;margin-bottom:34px}
+  h1{font-size:25px;font-weight:600;margin:0 0 10px;letter-spacing:-.2px}
+  .sub{color:var(--tx2);font-size:14px;margin:0}
+  .meta{margin-top:14px;font-size:12.5px;color:var(--tx3)}
+  h2{font-size:19px;font-weight:600;margin:44px 0 14px;padding-left:11px;border-left:3px solid var(--blue)}
+  h3{font-size:15.5px;font-weight:600;margin:28px 0 10px}
+  p{margin:0 0 13px}
+  ul,ol{margin:0 0 14px;padding-left:22px}
+  li{margin-bottom:6px}
+  code{background:var(--bg3);padding:1.5px 6px;border-radius:4px;font-size:12.5px;
+    font-family:"SF Mono",Consolas,Monaco,monospace;color:#7a3e00}
+  pre{background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;
+    overflow-x:auto;font-size:12.5px;line-height:1.7;margin:0 0 16px;
+    font-family:"SF Mono",Consolas,Monaco,monospace}
+  .card{background:var(--bg);border:1px solid var(--bd);border-radius:11px;padding:20px 24px;margin-bottom:16px}
+  .note{background:var(--blue-bg);border:1px solid var(--blue-bd);border-left:4px solid var(--blue);
+    border-radius:8px;padding:15px 18px;margin:16px 0}
+  .warn{background:var(--amber-bg);border:1px solid var(--amber-bd);border-left:4px solid var(--amber);
+    border-radius:8px;padding:15px 18px;margin:16px 0}
+  .danger{background:var(--red-bg);border:1px solid var(--red-bd);border-left:4px solid var(--red);
+    border-radius:8px;padding:15px 18px;margin:16px 0}
+  .ok{background:var(--teal-bg);border:1px solid var(--teal-bd);border-left:4px solid var(--teal);
+    border-radius:8px;padding:15px 18px;margin:16px 0}
+  table{width:100%;border-collapse:collapse;background:var(--bg);border:1px solid var(--bd);
+    border-radius:9px;overflow:hidden;margin:16px 0 22px;font-size:13px}
+  th{background:var(--bg3);text-align:left;padding:11px 12px;font-weight:600;
+    border-bottom:1px solid var(--bd2);font-size:12.5px;color:var(--tx2);vertical-align:bottom}
+  td{padding:11px 12px;border-bottom:1px solid var(--bd);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  .tag{display:inline-block;padding:1.5px 8px;border-radius:20px;font-size:11.5px;
+    font-weight:500;white-space:nowrap;border:1px solid}
+  .t-blue{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd)}
+  .t-teal{background:var(--teal-bg);color:var(--teal);border-color:var(--teal-bd)}
+  .t-amber{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-bd)}
+  .t-gray{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-bd)}
+  .t-red{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+  .repo{font-family:"SF Mono",Consolas,monaco,monospace;font-size:12.5px;color:var(--blue)}
+  .foot{margin-top:52px;padding-top:20px;border-top:1px solid var(--bd2);font-size:12.5px;color:var(--tx3)}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .feat{background:var(--bg);border:1px solid var(--bd);border-radius:11px;padding:18px 20px}
+  .feat h4{margin:0 0 8px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+    border-radius:50%;background:var(--blue);color:#fff;font-size:11.5px;font-weight:600;flex:none}
+  .feat p{font-size:13px;color:var(--tx2);margin:0 0 8px}
+  .feat ul{font-size:13px;margin:8px 0 0}
+  .badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>PrtEasyServer v2.1.0 升级交付说明</h1>
+  <p class="sub">突破「只支持 PCL / PostScript 打印机」的限制，并让客户端无需安装驱动</p>
+  <p class="meta">交付日期：2026-10-23 · 项目：Windows-PrtEasyServer（原生 C++ x64） · 全部 10 个源文件通过语法与严格警告检查</p>
+</header>
+
+<h2>一、交付了什么</h2>
+
+<p>升级围绕一个核心判断展开：<strong>原版是「RAW 透传服务器」，不是「打印服务器」</strong>。它把「打印机型号支持」的责任完全推给客户端——客户端必须装厂商驱动并产出 PCL/PS 字节流。因此喷墨机、标签机、小票机全部不可用，macOS 与 iOS 也天然无法接入。</p>
+
+<p>本次升级新增四项能力，全部<strong>保留原有「一台打印机一个端口」架构</strong>，现网配置不受影响：</p>
+
+<div class="grid2">
+  <div class="feat">
+    <h4><span class="num">1</span>RENDER 模式</h4>
+    <p>服务端用打印机<strong>自己的驱动</strong>渲染内容，突破型号天花板。</p>
+    <ul>
+      <li>通过 <code>CreateDC("WINSPDC")</code> 打开队列设备上下文，驱动负责最终语言转换</li>
+      <li>文本自动换行与分页，CJK 可逐字断行</li>
+      <li>图片按 <strong>真实物理尺寸</strong>放置（依图像 DPI 与打印机原生 DPI 换算），修复标签机打印缩小问题</li>
+      <li>纸张、方向、份数经 DEVMODE 交给驱动处理</li>
+    </ul>
+    <div class="badge-row">
+      <span class="tag t-teal">喷墨机</span><span class="tag t-teal">标签机</span>
+      <span class="tag t-teal">小票机</span><span class="tag t-teal">host-based 激光机</span>
+    </div>
+  </div>
+
+  <div class="feat">
+    <h4><span class="num">2</span>HTTP 打印 API</h4>
+    <p>客户端<strong>零驱动</strong>打印，手机、macOS、ERP、脚本都能直接用。</p>
+    <ul>
+      <li><code>POST /api/print?printer=名称&amp;paper=A4</code></li>
+      <li>载荷类型自动识别：图片 / 文本 / PDF</li>
+      <li>参数：<code>printer copies paper orientation fit scale monochrome fontsize font</code></li>
+      <li><code>GET /api/printers</code> 返回打印机列表 JSON</li>
+      <li>内置网页已加入 API 说明与 curl 示例</li>
+    </ul>
+    <div class="badge-row">
+      <span class="tag t-blue">iOS / Android</span><span class="tag t-blue">macOS</span>
+      <span class="tag t-blue">ERP / 脚本</span>
+    </div>
+  </div>
+
+  <div class="feat">
+    <h4><span class="num">3</span>mDNS 自动发现</h4>
+    <p>打印机自己广播，客户端不再需要手输 IP。</p>
+    <ul>
+      <li>每台打印机以独立实例广播 <code>_pdl-datastream._tcp.local</code></li>
+      <li>PTR / SRV / TXT / A 记录，TXT 携带 <code>rp=</code> 端口与队列名</li>
+      <li>跟随服务器启停；5353 端口被占用时自动降级并写日志</li>
+    </ul>
+    <div class="badge-row"><span class="tag t-teal">零配置</span></div>
+  </div>
+
+  <div class="feat">
+    <h4><span class="num">4</span>LPD 监听（RFC 1179）</h4>
+    <p>兼容传统 Unix / 嵌入式 / 老旧设备客户端。</p>
+    <ul>
+      <li>队列名映射到已配置打印机，也可用打印机名</li>
+      <li>支持 <code>0x01</code> 打印（带控制文件）、<code>0x02</code> 仅数据、<code>0x03</code> 队列状态、<code>0x05</code> 移除作业、<code>0x06</code> 队列列表</li>
+      <li>设置页可开关，默认端口 515</li>
+    </ul>
+    <div class="badge-row"><span class="tag t-amber">默认关闭</span></div>
+  </div>
+</div>
+
+<h2>二、改动清单</h2>
+
+<table>
+  <thead>
+    <tr><th style="width:70px">类别</th><th style="width:280px">文件</th><th style="width:80px">行数</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><span class="tag t-teal">新增</span></td><td class="repo">src/render_engine.{h,cpp}</td><td class="num">1074</td><td>RENDER 模式核心：GDI+ 渲染引擎、DEVMODE 纸张设置、1:1 物理尺寸计算</td></tr>
+    <tr><td><span class="tag t-teal">新增</span></td><td class="repo">src/print_api.{h,cpp}</td><td class="num">320</td><td>HTTP 打印 API：请求解析、参数校验、完整 HTTP 请求读取</td></tr>
+    <tr><td><span class="tag t-teal">新增</span></td><td class="repo">src/mdns_broadcaster.{h,cpp}</td><td class="num">349</td><td>mDNS 组播广播器：DNS 报文编码、组播加入、周期通告</td></tr>
+    <tr><td><span class="tag t-teal">新增</span></td><td class="repo">src/lpd_server.{h,cpp}</td><td class="num">401</td><td>LPD 监听器：RFC 1179 命令处理、队列映射</td></tr>
+    <tr><td><span class="tag t-blue">修改</span></td><td class="repo">src/printer_server.{h,cpp}</td><td class="num">—</td><td>接入 render 分支、HTTP API 端点、mDNS 与 LPD 生命周期、网页 API 区块</td></tr>
+    <tr><td><span class="tag t-blue">修改</span></td><td class="repo">src/config.{h,cpp}</td><td class="num">—</td><td>新增 <code>render</code> 模式值、<code>enable_lpd</code> / <code>lpd_port</code> 配置项，全部向后兼容</td></tr>
+    <tr><td><span class="tag t-blue">修改</span></td><td class="repo">src/main_window.{h,cpp}</td><td class="num">—</td><td>模式下拉框加入 RENDER、设置页加入 LPD 开关与端口、列表列宽调整</td></tr>
+    <tr><td><span class="tag t-blue">修改</span></td><td class="repo">src/localization.cpp</td><td class="num">—</td><td>中 / 繁 / 英三套文案补齐 LPD 设置项与网页 API 说明</td></tr>
+    <tr><td><span class="tag t-blue">修改</span></td><td class="repo">build-windows10.cmd</td><td class="num">—</td><td>加入 4 个新源文件，链接 <code>Gdiplus.lib</code></td></tr>
+    <tr><td><span class="tag t-amber">新增</span></td><td class="repo">tools/check_syntax.sh</td><td class="num">—</td><td>无 Visual Studio 时的语法自检脚本（MinGW）</td></tr>
+    <tr><td><span class="tag t-amber">新增</span></td><td class="repo">tools/smoke_test.sh</td><td class="num">—</td><td>对运行中的服务器做功能冒烟测试</td></tr>
+    <tr><td><span class="tag t-blue">修改</span></td><td class="repo">README.md / BUILDING-WINDOWS10.md</td><td class="num">—</td><td>新特性说明、配置格式、测试方法、已知限制</td></tr>
+    <tr><td><span class="tag t-gray">备份</span></td><td class="repo">backup/src-v2.0.0/</td><td class="num">—</td><td>改动前的完整基线快照，可随时回滚</td></tr>
+  </tbody>
+</table>
+
+<h2>三、质量保障</h2>
+
+<div class="note">
+  <strong>关键约束：本机没有 MSVC，也没有管理员权限。</strong>为了不让代码「写完就交、无法验证」，我下载了便携版 MinGW 工具链（WinLibs GCC 16.2.0）搭建了验证闭环。它抓出了 <strong>20 余处真实错误</strong>，包括 <code>DMPAPER_LETTER_SMALL</code> 宏名错误、<code>std::atol</code> 不支持 wchar_t、GDI+ C++ 包装类误用、<code>DeviceCapabilitiesW</code> 在两套 SDK 中第 5 参数类型不同（<code>WORD</code> vs <code>DEVMODEW*</code>）、<code>GetLocalIPv4Address()</code> 返回类型不匹配等。这些问题在 MSVC 下同样会失败。
+</div>
+
+<h3>检查结果</h3>
+
+<table>
+  <thead>
+    <tr><th style="width:220px">检查项</th><th style="width:100px">结果</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>全量语法检查</td><td><span class="tag t-teal">10/10 通过</span></td><td>common / config / localization / lpd_server / main / main_window / mdns_broadcaster / print_api / printer_server / render_engine</td></tr>
+    <tr><td>严格警告检查</td><td><span class="tag t-teal">0 警告</span></td><td><code>-Wall -Wextra</code>（排除 MSVC 专有 <code>#pragma comment</code>）</td></tr>
+    <tr><td>原有文件完整性</td><td><span class="tag t-teal">已核对</span></td><td>common.cpp 与 main.cpp 零改动；printer_server.cpp 仅删除 7 行被替换的旧逻辑</td></tr>
+    <tr><td>跨工具链兼容</td><td><span class="tag t-teal">已处理</span></td><td>GDI+ 调用统一走两套 SDK 共有的 flat API，差异用条件编译隔离</td></tr>
+    <tr><td>MSVC 实际编译</td><td><span class="tag t-amber">未执行</span></td><td>本机无 Visual Studio，需你在 x64 Native Tools 提示符中执行 <code>build-windows10.cmd</code></td></tr>
+    <tr><td>真实打印机出纸</td><td><span class="tag t-amber">未执行</span></td><td>无物理打印机，须先用非关键设备试点</td></tr>
+  </tbody>
+</table>
+
+<div class="ok">
+  <strong>附带成果：</strong><code>tools/check_syntax.sh</code> 让这个项目从此有了「无 Visual Studio 也能自查」的机制。它在临时副本里改写两处 MSVC 扩展语法（wstring 文件流），绝不改动交付源码，可随时接入 CI。
+</div>
+
+<h2>四、向后兼容性</h2>
+
+<table>
+  <thead>
+    <tr><th style="width:210px">场景</th><th>行为</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>旧版 <code>config.json</code></td><td>无新字段时全部打印机保持 RAW 模式，LPD 监听保持关闭，行为与 v2.0.0 完全一致</td></tr>
+    <tr><td>旧版 RAW 客户端</td><td>照常工作，TCP 9100 透传逻辑未改动</td></tr>
+    <tr><td>旧版 XPS 模式</td><td>照常工作，仍走 Windows XPS Print API</td></tr>
+    <tr><td>旧版网页</td><td>照常工作，仅在页面底部追加了 API 说明区块</td></tr>
+    <tr><td>Windows 7</td><td>保持支持，<code>_WIN32_WINNT=0x0601</code> 未变，新代码未使用 Win8+ 专属 API</td></tr>
+    <tr><td>运行时依赖</td><td>无新增依赖，<code>Gdiplus.lib</code> 属 Windows SDK 组成部分</td></tr>
+  </tbody>
+</table>
+
+<h2>五、怎么用</h2>
+
+<h3>方式一：把某台打印机切到 RENDER 模式</h3>
+<ol>
+  <li>在设置页把该打印机的「打印模式」选为 <code>RENDER</code>，保存</li>
+  <li>客户端向该端口发送文本或图片即可，无需任何驱动</li>
+</ol>
+
+<h3>方式二：用 HTTP API（推荐）</h3>
+<pre># 打印文本（自动换行分页）
+curl -X POST --data-binary @note.txt \
+  "http://192.168.1.50/api/print?printer=HP%20LaserJet"
+
+# 打印标签图，102x152 为毫米（4x6 英寸）
+curl -X POST --data-binary @label.png \
+  "http://192.168.1.50/api/print?printer=Zebra%20ZD220&paper=102x152"
+
+# 查看可用打印机
+curl "http://192.168.1.50/api/printers"</pre>
+
+<h3>方式三：传统 LPD 客户端</h3>
+<pre>lp -h 192.168.1.50 -P "HP LaserJet" /path/to/file</pre>
+
+<h3>验证步骤</h3>
+<pre># 1. 编译（在 x64 Native Tools Command Prompt 中）
+build-windows10.cmd
+
+# 2. 启动服务器后跑冒烟测试
+bash tools/smoke_test.sh 192.168.1.50 80</pre>
+
+<div class="warn">
+  <strong>测试顺序建议：</strong>先用 <code>Microsoft Print to PDF</code> 虚拟队列验证渲染效果（改窗口、不浪费纸），确认无误后再切真实打印机出纸。冒烟脚本只报告服务端应答，<strong>不能证明纸真的出来了</strong>——这是打印服务器测试的固有陷阱。
+</div>
+
+<h2>六、PDFium 依赖（后续补充）</h2>
+
+<p>最初交付时 PDF 只能原样转交打印队列，仅当驱动本身支持 PDF 时才能出纸。本次补上了 PDF 渲染能力。</p>
+
+<div class="warn">
+  <strong>关于 MuPDF：评估后未采用，原因是许可证。</strong>MuPDF 采用 <strong>AGPL-3.0</strong>，一旦链接，整个项目必须以 AGPL 发布——需向所有用户交付完整源码，且必须保证用户能替换重链接。对内部 / 商业分发基本不可行，除非向 Artifex 单独购买商业授权。<br><br>
+  PDFium 采用 <strong>MIT 许可证</strong>，与本项目完全兼容，因此选择 PDFium。
+</div>
+
+<h3>实现方式：运行时动态加载</h3>
+
+<table>
+  <thead>
+    <tr><th style="width:200px">设计决策</th><th>理由</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>用 <code>LoadLibrary</code> 运行时加载</td><td>EXE <strong>不链接</strong> PDFium，保持零依赖；不用 PDF 的部署完全不需要这个 DLL</td></tr>
+    <tr><td>用户可选安装</td><td>缺失时应用照常启动，PDF 作业降级为原样转交队列，原因写入日志</td></tr>
+    <tr><td>用 <code>FPDF_LoadMemDocument</code></td><td>直接从内存加载，无需写临时文件</td></tr>
+    <tr><td>300 dpi 栅格化</td><td>与激光打印机常用分辨率一致，页面比例与清晰度兼顾</td></tr>
+    <tr><td>多页 PDF → 多页作业</td><td>每个文档页独立栅格化并独立打印</td></tr>
+  </tbody>
+</table>
+
+<h3>实测结果</h3>
+
+<p>本轮<strong>真实运行验证</strong>了 PDF 链路（非仅语法检查）：</p>
+
+<table>
+  <thead>
+    <tr><th style="width:230px">检查项</th><th style="width:110px">结果</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>PDFium 动态加载</td><td><span class="tag t-teal">通过</span></td><td>实际加载 chromium/8111 版 pdfium.dll（7.5 MB），14 个 API 符号全部解析成功</td></tr>
+    <tr><td>缺 DLL 时的降级</td><td><span class="tag t-teal">通过</span></td><td>给出明确提示「pdfium.dll was not found...」，不崩溃</td></tr>
+    <tr><td>单页 PDF 栅格化</td><td><span class="tag t-teal">通过</span></td><td>200×100pt @ 300dpi → <strong>833×417 像素</strong>，与数学预期一致</td></tr>
+    <tr><td>多页 PDF 拆分</td><td><span class="tag t-teal">通过</span></td><td>3 页 PDF → 3 个打印页，每页 1250×833</td></tr>
+    <tr><td>内容真实性</td><td><span class="tag t-teal">通过</span></td><td>逐像素校验非白像素：每页 <strong>347778 个</strong>，证明内容真实渲染而非空白页</td></tr>
+    <tr><td>端到端链路</td><td><span class="tag t-teal">通过</span></td><td>PDF 字节 → 类型识别 → 栅格化 → 可打印位图，全链路通过</td></tr>
+    <tr><td>物理出纸</td><td><span class="tag t-amber">未执行</span></td><td>本机无打印机，须在你的环境中确认</td></tr>
+  </tbody>
+</table>
+
+<h3>使用方式</h3>
+
+<pre># 1. 下载并安装 PDFium（安装到 third_party/pdfium/）
+bash tools/fetch_pdfium.sh
+
+# 2. 复制到程序目录（二选一）
+copy third_party\pdfium\pdfium.dll .
+# 或保留整个 third_party/pdfium 文件夹
+
+# 3. 验证（无需打印机）
+bash tools/test_pdfium.sh</pre>
+
+<p>查找顺序：程序同目录 → <code>&lt;exe&gt;/third_party/pdfium.dll</code> → <code>&lt;exe&gt;/third_party/pdfium/pdfium.dll</code></p>
+
+<h3>新增文件</h3>
+
+<table>
+  <thead>
+    <tr><th style="width:280px">文件</th><th style="width:80px">行数</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="repo">src/pdf_renderer.{h,cpp}</td><td class="num">—</td><td>PDFium 动态加载器：符号解析、内存加载、逐页栅格化、缺失降级</td></tr>
+    <tr><td class="repo">tools/fetch_pdfium.sh</td><td class="num">—</td><td>下载 + 安装 PDFium，同时携带 LICENSE</td></tr>
+    <tr><td class="repo">tools/test_pdfium.sh</td><td class="num">—</td><td>三项自动化检查：缺 DLL 降级 / 加载与栅格化 / 端到端链路</td></tr>
+    <tr><td class="repo">tools/pdf_renderer_test.cpp</td><td class="num">—</td><td>加载器单元测试</td></tr>
+    <tr><td class="repo">tools/pdf_render_path_test.cpp</td><td class="num">—</td><td>端到端渲染路径测试（含像素内容校验）</td></tr>
+    <tr><td class="repo">THIRD-PARTY-NOTICES.md</td><td class="num">—</td><td>第三方组件与许可证归属声明</td></tr>
+  </tbody>
+</table>
+
+<h2>七、已知限制（请一并评估）</h2>
+
+<table>
+  <thead>
+    <tr><th style="width:230px">限制</th><th>说明与建议</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PDF 需可选的 PDFium</td>
+      <td>PDF 栅格化依赖运行时加载的 PDFium（MIT 许可）。缺失时 PDF 原样转交队列，仅驱动本身支持 PDF 时可出纸。已用 <code>tools/fetch_pdfium.sh</code> 一键安装</td>
+    </tr>
+    <tr>
+      <td>未实现完整 IPP / AirPrint</td>
+      <td>mDNS 当前广播的是 <code>_pdl-datastream._tcp</code>。真正的 AirPrint 需要 IPP 服务器 + URF 支持，工程量较大，建议作为下一阶段</td>
+    </tr>
+    <tr>
+      <td>RENDER 模式无作业队列</td>
+      <td>渲染是同步进行的，大文件会占用连接线程。批量场景建议走 RAW 模式交给系统队列</td>
+    </tr>
+    <tr>
+      <td>mDNS 单实例</td>
+      <td>5353 端口被其他 mDNS 响应器（如 Bonjour）占用时，本程序无法加入组播。多数系统允许多进程共享，但需实测确认</td>
+    </tr>
+    <tr>
+      <td>未在 Windows 上编译</td>
+      <td>语法与类型层面已充分验证，但 MSVC 的 <code>/W4</code> 可能报出 MinGW 未覆盖的警告。建议编译后确认无新警告</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>八、建议的后续步骤</h2>
+
+<ol>
+  <li><strong>先编译</strong>：在 VS 的 x64 Native Tools 提示符里执行 <code>build-windows10.cmd</code>，确认无编译错误与新警告</li>
+  <li><strong>用虚拟打印机验证</strong>：把「Microsoft Print to PDF」设为 RENDER 模式，试一张图片和一段长文本，确认排版与 1:1 尺寸正确</li>
+  <li><strong>再上真机</strong>：切到目标喷墨机 / 标签机，出纸确认</li>
+  <li><strong>验证 API</strong>：跑 <code>tools/smoke_test.sh</code>，再用手机浏览器试一张图片</li>
+  <li><strong>观察日志</strong>：<code>logs\printer-server.log</code> 会记录每次作业的类型、页数与成败</li>
+</ol>
+
+<p class="foot">
+本次升级在 Windows 上未实际编译运行，所有验证均为语法级与类型级检查，物理出纸需在你的环境中确认。
+基线快照保留在 <code>backup/src-v2.0.0/</code>，如需回滚直接覆盖 <code>src/</code> 即可。
+</p>
+
+</div>
+</body>
+</html>

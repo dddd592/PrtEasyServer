@@ -1,0 +1,41 @@
+# Build outputs
+build/
+x64/
+Debug/
+Release/
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.idb
+*.res
+*.lib
+*.exp
+*.exe
+*.tlog
+*.ipdb
+*.iobj
+*.log
+
+# IDE files
+.vs/
+*.suo
+*.user
+*.VC.db
+*.VC.opendb
+
+# Runtime files generated next to the EXE
+config.json
+language/
+
+# WorkBuddy internal project data (memory, tasks, caches) — not project source
+.workbuddy/
+
+# Local backup copies of older source revisions
+backup/
+
+# One-off test artifacts created during local testing
+mdns_listen.py
+lpd_test.py
+test_api.pdf
+build_once.cmd
