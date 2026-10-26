@@ -13,7 +13,7 @@
 4. Run `build-windows10.cmd`.
 5. The output path is `build\PrtEasyServer-Custom.exe`. The application generates built-in `language\zh-cn.txt`, `tw.txt` and `en.txt` files beside the EXE on first run.
 
-The script uses the MSVC x64 compiler, Windows SDK resource compiler and links `XpsPrint.lib`. This environment is not Windows, so this archive has not been compiled or runtime-tested here.
+The script uses the MSVC x64 compiler, Windows SDK resource compiler and links `XpsPrint.lib`. The CRT is statically linked (`/MT`), so the EXE is self-contained and runs on machines without the Visual C++ Redistributable — copy the EXE (plus `pdfium.dll` for PDF support) to another computer and it starts.
 
 ## Changes in this custom source
 - Simplified Chinese (`zh-cn`) added as a built-in language; Chinese Simplified/Singapore locale defaults to it. Traditional Chinese (`tw`) and English (`en`) remain selectable.

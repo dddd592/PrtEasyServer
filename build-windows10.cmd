@@ -22,7 +22,7 @@ rc.exe /nologo /fo ..\build\obj\resources.res resources.rc
 if errorlevel 1 goto :failed_src
 popd
 
-cl.exe /nologo /std:c++17 /EHsc /W4 /DUNICODE /D_UNICODE /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN32_WINNT=0x0601 /DWINVER=0x0601 /MD /O2 /utf-8 ^
+cl.exe /nologo /std:c++17 /EHsc /W4 /DUNICODE /D_UNICODE /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN32_WINNT=0x0601 /DWINVER=0x0601 /MT /O2 /utf-8 ^
   src\main.cpp src\main_window.cpp src\printer_server.cpp src\localization.cpp src\config.cpp src\common.cpp src\render_engine.cpp src\print_api.cpp src\mdns_broadcaster.cpp src\lpd_server.cpp src\pdf_renderer.cpp src\gdi_plus_flat.cpp src\driver_probe.cpp build\obj\resources.res ^
   /Febuild\PrtEasyServer-Custom.exe ^
   /Fobuild\obj\ ^
