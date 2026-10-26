@@ -2,22 +2,26 @@
 
 Native C++ Windows RAW 9100 Network Print Server and TCP/IP Printer Server for local USB printers and Windows-installed printers.
 
-[![Downloads](https://img.shields.io/github/downloads/Terence0816/Windows-PrtEasyServer/total?label=Downloads&color=1f6feb)](https://github.com/Terence0816/Windows-PrtEasyServer/releases) | [Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases) | [Latest Official Build `v2.0.0.0`](https://github.com/Terence0816/Windows-PrtEasyServer/releases/download/v2.0.0.0/PrtEasyServer.exe) | [MIT License](./LICENSE)
+[![Releases](https://img.shields.io/badge/Releases-v2.1.0.0-blue)](https://github.com/dddd592/PrtEasyServer/releases) | [Upstream](https://github.com/Terence0816/Windows-PrtEasyServer) | [MIT License](./LICENSE)
 
 English | [繁體中文](#zh-tw)
 
-PrtEasyServer is now a native C++ rewrite of the original Python-packaged application. It turns a Windows PC into a lightweight RAW 9100 / TCP-IP printer server, so client PCs can install shared printers through a standard IP port without SMB printer sharing, Windows network neighborhood prompts, or account/password dialogs.
+PrtEasyServer is a native C++ rewrite of the original Python-packaged application. It turns a Windows PC into a lightweight RAW 9100 / TCP-IP printer server, so client PCs can install shared printers through a standard IP port without SMB printer sharing, Windows network neighborhood prompts, or account/password dialogs.
 
+This repository (`dddd592/PrtEasyServer`) is an **enhanced fork** of [Terence0816/Windows-PrtEasyServer](https://github.com/Terence0816/Windows-PrtEasyServer) — see [About this fork](#about-this-fork) for what was added on top of upstream.
 
-## Custom branch changes (XPS / Simplified Chinese / logs)
+## <a id="about-this-fork"></a>About this fork
 
-This source archive contains a Windows 10 x64 custom build path in `build-windows10.cmd` and `BUILDING-WINDOWS10.md`. Compared with upstream v2.0.0.0 it adds:
+Based on upstream v2.1.0.0, this build adds:
 
-- Simplified Chinese (`zh-cn`) as a built-in UI language and default for Simplified Chinese/Singapore locale settings; English and Traditional Chinese remain available.
-- Persistent UTF-8 log file `logs\printer-server.log`, with one previous file retained after a 5 MiB rotation threshold.
-- Detection of complete XPS/OpenXPS ZIP packages and submission through the Windows XPS Print API (`StartXpsPrintJob`), while non-XPS data continues through the original RAW path.
+- **AUTO print mode** — per-queue automatic RAW / XPS / RENDER selection backed by driver probing and payload sniffing (see below).
+- **Android-friendly mDNS** — dual `_pdl-datastream._tcp` + `_printer._tcp` advertisements, RFC 6763 compliant FQDN names, multicast interface pinning, and an independent on/off switch in the settings page.
+- **Hardened LPD listener** — real success/failure acknowledgements, payload limits, receive timeouts, an automatically created firewall rule, and a fix for the UI freeze when stopping the service.
+- **Stability hardening** — structured-exception (SEH) guards around every client handler keep the server alive on driver faults; full driver DEVMODE buffers are preserved (fixes an access violation in `CreateDCW`); PDFium rendering is serialized with a mutex; 256 MiB payload/page budgets and 30 second receive timeouts on all listeners.
+- **Self-healing installer BAT** — re-running the generated installer rebinds an existing queue/port to the current address and port numbers instead of skipping.
+- **Simplified Chinese (`zh-cn`) as a built-in UI language**, persistent UTF-8 log file with 5 MiB rotation, and XPS/OpenXPS package submission through the Windows XPS Print API (from the earlier custom build line).
 
-This is a source modification, not a prebuilt EXE. It has not been compiled or tested on Windows in the current environment. XPS support should be validated with the actual installed printer driver and a non-critical test printer before production use.
+This is a source build, not a prebuilt EXE — see [BUILDING-WINDOWS10.md](./BUILDING-WINDOWS10.md) for the Windows 10 x64 build path.
 
 ## v2.1.0 — printing beyond PCL/PostScript printers
 
@@ -51,7 +55,25 @@ inkjets, label printers and thermal receipt printers.
 * **PDF documents are rasterised** through PDFium, Chromium's PDF engine.
   See the section below.
 
-### 2. HTTP print API — no driver on the client
+### 2. AUTO mode — automatic RAW / XPS / RENDER selection
+
+Each queue can be set to `AUTO` in the mode selector instead of a fixed mode.
+On startup the server probes every queue's installed driver
+(`GetPrinterDriver`, `GetPrinter`, `DeviceCapabilities`) and caches the
+profile; at print time the payload itself decides the path:
+
+* Native PDL payloads (PCL, PJL, PostScript, ZPL/TSPL, ESC/POS magic bytes)
+  are always forwarded untouched through RAW, even when a GDI driver is
+  present — content wins over driver labels.
+* XPS packages go through the XPS Print API when the driver reports XPS
+  compliance, and fall back to RENDER otherwise.
+* Everything else (PDF, images, text, unknown bytes) goes through RENDER, so
+  the queue's own driver produces whatever language the printer speaks.
+
+The resolved mode is written to the log for every job (e.g. `AUTO->render`),
+so it is always visible which path was taken.
+
+### 3. HTTP print API — no driver on the client
 
 ```
 POST http://<server>:80/api/print?printer=<name>&paper=A4&orientation=portrait
@@ -69,18 +91,29 @@ Query parameters: `printer` (required), `copies`, `paper`, `orientation`,
 
 `GET /api/printers` returns the configured printer names as JSON.
 
-### 3. mDNS discovery — the printers find themselves
+### 4. mDNS discovery — the printers find themselves
 
-Each configured printer is advertised over multicast DNS as
-`_pdl-datastream._tcp.local`, with its own instance name and port. Clients
-that support discovery can now locate the queues without being told the
-address. The advertisement starts and stops with the server.
+Each configured printer is advertised over multicast DNS with its own
+instance name and port:
+
+* `_pdl-datastream._tcp` pointing at the RAW port (classic PDL data stream).
+* `_printer._tcp` pointing at the LPD port when the LPD listener is enabled —
+  this is the service type that Android print apps such as PrinterShare and
+  the Mopria print service browse for.
+
+Instance and host names are published as RFC 6763 compliant FQDNs
+(`<printer> @ <host>._pdl-datastream._tcp.local`, `<host>.local`), which the
+Android NSD / Mopria discovery stack requires; more lenient resolvers on
+Windows and macOS accept them too. The multicast sender is pinned to the
+primary LAN interface, so VPN virtual adapters cannot swallow the
+announcements. Broadcasting can be switched off independently in the
+settings page.
 
 If UDP port 5353 is already taken by another responder the feature turns
 itself off and the reason is written to the log; the printers stay reachable
 by IP.
 
-### 4. LPD listener (RFC 1179) — legacy clients
+### 5. LPD listener (RFC 1179) — legacy clients
 
 Unix hosts, embedded devices and older appliances usually speak LPD rather
 than RAW. Enable the listener in the settings page and the queue name in an
@@ -88,7 +121,18 @@ LPD request selects the destination printer. The supported commands are
 `0x01` (print with a control file), `0x02` (print data only), `0x03` (queue
 status), `0x05` (remove jobs) and `0x06` (list queues).
 
-### 5. PDF support through PDFium
+Unix hosts, embedded devices and older appliances usually speak LPD rather
+than RAW. Enable the listener in the settings page and the queue name in an
+LPD request selects the destination printer. The supported commands are
+`0x01` (print with a control file), `0x02` (print data only), `0x03` (queue
+status), `0x05` (remove jobs) and `0x06` (list queues).
+
+Jobs are only acknowledged (`0x00`) after the payload has actually been
+handed to the destination queue — a failed handover returns an error code
+instead of a silent fake success. A matching Windows firewall rule is created
+automatically when the listener starts.
+
+### 6. PDF support through PDFium
 
 Windows has no built-in PDF renderer, so a PDF used to be forwarded to the
 spooler unchanged, which only worked on queues whose driver accepts PDF
@@ -132,7 +176,29 @@ its complete source code. PDFium avoids that entirely.
 
 ## Version History
 
-### v2.1.0.0
+### v2.1.0.0 (this fork)
+
+Beyond upstream v2.1.0.0:
+
+- Added the `AUTO` print mode: per-queue driver probing on startup plus
+  payload sniffing at print time, choosing RAW for native PDL bytes, the XPS
+  Print API for compliant drivers, and RENDER for everything else.
+- mDNS: added a second `_printer._tcp` advertisement (LPD) so Android print
+  apps can discover the queues, published RFC 6763 compliant FQDN names,
+  pinned the multicast sender to the primary LAN interface, and added an
+  independent on/off switch in the settings page.
+- LPD: real success/failure acknowledgements, payload size limits, receive
+  timeouts, an automatic firewall rule, and a fix for the shutdown deadlock
+  that froze the UI when stopping the service.
+- Stability: SEH structured-exception guards around all client handlers (the
+  server survives driver faults instead of disappearing), full DEVMODE
+  driver buffers passed to `CreateDCW` (fixes an access violation), a mutex
+  around PDFium rendering, and 256 MiB / 30 second resource limits on every
+  listener and the HTTP API.
+- The generated installer BAT is self-healing: re-running it rebinds an
+  existing queue and port to the current address and port numbers.
+
+### v2.1.0.0 (upstream)
 
 - Added the `RENDER` print mode. The server renders the payload through the
   queue's own printer driver, which extends support to inkjets, label
@@ -180,8 +246,13 @@ its complete source code. PDFium avoids that entirely.
 
 - Native C++ x64 main application
 - RAW 9100 printer sharing over TCP/IP
+- Per-printer print modes: RAW / XPS / RENDER / AUTO
+- PDF, image and text rendering through the queue's own driver (PDFium + GDI+)
+- HTTP print API (`POST /api/print`) for driverless clients
+- mDNS (Bonjour) discovery with `_pdl-datastream._tcp` + `_printer._tcp`
+- Optional LPD listener (RFC 1179) for legacy clients
 - Built-in setup web page
-- Automatic installer BAT generation
+- Automatic installer BAT generation (self-healing on re-run)
 - Driver package download and installation flow
 - Windows 7 / 10 / 11 support
 - No Python Runtime dependency in the main application
@@ -192,8 +263,9 @@ its complete source code. PDFium avoids that entirely.
 - `src/`: main C++ Win32 source code
 - `assets/printer.ico`: application icon used by the native resources
 - `assets/screenshots/`: README screenshots
-
-The repository now focuses on the native C++ source tree. Local/private helper build scripts are intentionally not included here so the root stays cleaner.
+- `third_party/pdfium/`: runtime PDFium DLL and licence texts
+- `tools/`: helper scripts and standalone test programs
+- `build-windows10.cmd` + `BUILDING-WINDOWS10.md`: Windows 10 x64 build path
 
 ## English Screenshots
 
@@ -227,13 +299,12 @@ The screenshots below show a Japanese UI created by manually adding a custom `jp
 
 ## Download
 
-- Release page: [Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases)
-- Official `v2.0.0.0` build: [PrtEasyServer.exe](https://github.com/Terence0816/Windows-PrtEasyServer/releases/download/v2.0.0.0/PrtEasyServer.exe)
-- GitHub release assets show the current download count for the official build
+- This fork: build from source with `build-windows10.cmd` (see [BUILDING-WINDOWS10.md](./BUILDING-WINDOWS10.md)).
+- Upstream releases: [Terence0816/Windows-PrtEasyServer Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases)
 
 ## Search Keywords
 
-Windows RAW 9100 print server, native C++ print server, TCP/IP printer server, Windows network print server, local USB printer sharing, IP printer setup, no SMB printer sharing, custom language txt, Win32 print server
+Windows RAW 9100 print server, native C++ print server, TCP/IP printer server, Windows network print server, local USB printer sharing, IP printer setup, no SMB printer sharing, AUTO print mode, PDF printing PDFium, Bonjour mDNS printer discovery, LPD RFC 1179, HTTP print API, custom language txt, Win32 print server
 
 ## Credits
 
@@ -253,7 +324,36 @@ This repository is released under the MIT License. See [LICENSE](./LICENSE).
 
 PrtEasyServer 現在已改為原生 C++ 版本，是一個 Windows RAW 9100 網路印表機伺服器，可把本機 USB 印表機或已安裝在 Windows 上的印表機轉成 TCP/IP 網路印表機。使用者可透過標準 IP 連接埠安裝印表機，不需要使用 Windows 網芳或 SMB 印表機分享，也不需要碰到帳號密碼提示。
 
+## 關於本儲存庫（強化分支）
+
+本儲存庫是 [Terence0816/Windows-PrtEasyServer](https://github.com/Terence0816/Windows-PrtEasyServer)（v2.1.0.0）的強化分支，在上游基礎上新增：
+
+- **AUTO 自動列印模式**：啟動時探測每個佇列的驅動程式，列印時依內容嗅探，自動在 RAW / XPS / RENDER 之間選擇（原生 PDL 位元流一律 RAW，其餘走 RENDER 由驅動程式轉換）。
+- **安卓友善的 mDNS**：同時公告 `_pdl-datastream._tcp` 與 `_printer._tcp` 兩種服務，名稱符合 RFC 6763 規範（Android NSD / Mopria 必需），組播鎖定實體網卡避免被 VPN 虛擬網卡吞掉，並可在設定頁獨立開關。
+- **強化的 LPD 監聽**：真實的成功/失敗回執、負載上限、接收逾時、自動建立防火牆規則，並修復停止服務時介面凍結的問題。
+- **穩定性強化**：所有用戶端處理常式加上 SEH 結構化異常防護（驅動程式故障時伺服器不再消失）、保留完整 DEVMODE 驅動緩衝區（修復 `CreateDCW` 存取違規）、PDFium 渲染互斥鎖、256 MiB / 30 秒資源上限。
+- **自癒式安裝 BAT**：重複執行安裝腳本會自動把既有佇列與連接埠重新綁定到目前的位址與埠號。
+- **內建簡體中文介面**、UTF-8 記錄檔輪轉、XPS/OpenXPS 封包透過 Windows XPS 列印 API 提交。
+
 ## 版本更新紀錄
+
+### v2.1.0.0（本分支）
+
+在上游 v2.1.0.0 基礎上新增：
+
+- `AUTO` 自動列印模式：啟動時驅動探測 + 列印時內容嗅探，原生 PDL 走 RAW、合規驅動走 XPS Print API、其餘走 RENDER。
+- mDNS：新增 `_printer._tcp`（LPD）第二服務公告、RFC 6763 合規 FQDN 名稱、組播介面鎖定、設定頁獨立開關。
+- LPD：真實回執、負載上限、接收逾時、自動防火牆規則、修復停止服務死鎖。
+- 穩定性：SEH 異常防護、完整 DEVMODE 緩衝區、PDFium 渲染互斥鎖、各監聽器 256 MiB / 30 秒資源上限。
+- 自癒式安裝 BAT：重複執行自動重綁佇列與連接埠。
+
+### v2.1.0.0（上游）
+
+- 新增 `RENDER` 列印模式，伺服器端透過佇列自身的驅動程式渲染，支援噴墨、標籤與熱感應收據印表機。
+- PDF 文件透過 PDFium 於執行時載入並點陣化，該依賴為可選項。
+- 新增 HTTP 列印 API（`POST /api/print` 與 `GET /api/printers`）。
+- 新增 mDNS 自動探索公告。
+- 新增可選的 LPD 監聽器（RFC 1179）。
 
 ### v2.0.0.0
 
@@ -288,8 +388,13 @@ PrtEasyServer 現在已改為原生 C++ 版本，是一個 Windows RAW 9100 網�
 
 - 原生 C++ x64 主程式
 - RAW 9100 TCP/IP 印表機分享
+- 每台印表機獨立列印模式：RAW / XPS / RENDER / AUTO
+- PDF、圖片與文字經佇列自身驅動程式渲染（PDFium + GDI+）
+- HTTP 列印 API（`POST /api/print`），用戶端免驅動程式
+- mDNS (Bonjour) 自動探索，含 `_pdl-datastream._tcp` 與 `_printer._tcp`
+- 可選 LPD 監聽器（RFC 1179）
 - 內建安裝設定網頁
-- 自動產生安裝 BAT
+- 自動產生安裝 BAT（重複執行自動重綁）
 - 驅動程式下載與安裝流程
 - 支援 Windows 7 / 10 / 11
 - 主程式不再依賴 Python Runtime
@@ -300,8 +405,9 @@ PrtEasyServer 現在已改為原生 C++ 版本，是一個 Windows RAW 9100 網�
 - `src/`：主要 C++ Win32 原始碼
 - `assets/printer.ico`：原生資源檔使用的程式圖示
 - `assets/screenshots/`：README 畫面截圖
-
-目前 GitHub 儲存庫以原生 C++ 原始碼為主，未放入本機專用的輔助編譯批次檔，讓根目錄維持比較乾淨。
+- `third_party/pdfium/`：執行時載入的 PDFium DLL 與授權文件
+- `tools/`：輔助腳本與獨立測試程式
+- `build-windows10.cmd` + `BUILDING-WINDOWS10.md`：Windows 10 x64 編譯路徑
 
 ## 中文畫面
 
@@ -335,13 +441,12 @@ PrtEasyServer 現在已改為原生 C++ 版本，是一個 Windows RAW 9100 網�
 
 ## 下載
 
-- 版本下載頁面：[Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases)
-- 正式版 `v2.0.0.0`：[PrtEasyServer.exe](https://github.com/Terence0816/Windows-PrtEasyServer/releases/download/v2.0.0.0/PrtEasyServer.exe)
-- GitHub 發行頁右側可查看目前的下載次數
+- 本分支：以 `build-windows10.cmd` 自原始碼編譯（見 [BUILDING-WINDOWS10.md](./BUILDING-WINDOWS10.md)）。
+- 上游發行版：[Terence0816/Windows-PrtEasyServer Releases](https://github.com/Terence0816/Windows-PrtEasyServer/releases)
 
 ## 搜尋關鍵字
 
-Windows RAW 9100 印表機伺服器、C++ 印表機伺服器、TCP/IP 印表機伺服器、Windows 網路印表機伺服器、USB 印表機分享、IP 印表機安裝、自定義語言 txt、無 SMB 分享、Win32 印表機分享
+Windows RAW 9100 印表機伺服器、C++ 印表機伺服器、TCP/IP 印表機伺服器、Windows 網路印表機伺服器、USB 印表機分享、IP 印表機安裝、AUTO 自動列印模式、PDF 列印 PDFium、Bonjour mDNS 印表機探索、LPD RFC 1179、HTTP 列印 API、自定義語言 txt、無 SMB 分享、Win32 印表機分享
 
 ## 原作與致謝
 
@@ -353,7 +458,3 @@ Original Copyright (c) 2025 xtieume@gmail.com
 
 本儲存庫目前使用 MIT License，詳見 [LICENSE](./LICENSE)。
 
-
-### Custom build: per-printer RAW / XPS mode
-
-The custom source adds a per-printer print-mode selector. RAW remains the default for backward compatibility. XPS mode submits complete XPS/OpenXPS packages through the Windows XPS Print API and rejects non-XPS payloads. See `BUILDING-WINDOWS10.md` for build and test notes.
