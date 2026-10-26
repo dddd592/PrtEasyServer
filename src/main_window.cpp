@@ -485,12 +485,12 @@ LRESULT MainWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
                     break;
                 case IdAboutGithubLink:
                     if (HIWORD(wParam) == STN_CLICKED) {
-                        OpenUrlInBrowser(L"https://github.com/Terence0816/Windows-PrtEasyServer");
+                        OpenUrlInBrowser(L"https://github.com/dddd592/PrtEasyServer");
                     }
                     break;
                 case IdAboutForkLink:
                     if (HIWORD(wParam) == STN_CLICKED) {
-                        OpenUrlInBrowser(L"https://github.com/dddd592/PrtEasyServer");
+                        OpenUrlInBrowser(L"https://github.com/Terence0816/Windows-PrtEasyServer");
                     }
                     break;
                 case IdMinimizeToTrayCheck:
@@ -516,7 +516,7 @@ LRESULT MainWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
             HDC dc = reinterpret_cast<HDC>(wParam);
             HWND control = reinterpret_cast<HWND>(lParam);
             HWND parent = ::GetParent(control);
-            if (control == aboutGithubLink_ || control == aboutForkLink_) {
+            if (control == aboutGithubLink_ || control == aboutLegacy2Link_) {
                 ::SetBkMode(dc, TRANSPARENT);
                 ::SetBkColor(dc, ::GetSysColor(COLOR_BTNFACE));
                 ::SetTextColor(dc, RGB(0, 102, 204));
@@ -550,7 +550,7 @@ LRESULT MainWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
         case WM_CTLCOLORBTN:
             return reinterpret_cast<LRESULT>(::GetSysColorBrush(COLOR_BTNFACE));
         case WM_SETCURSOR:
-            if (reinterpret_cast<HWND>(wParam) == aboutGithubLink_ || reinterpret_cast<HWND>(wParam) == aboutForkLink_) {
+            if (reinterpret_cast<HWND>(wParam) == aboutGithubLink_ || reinterpret_cast<HWND>(wParam) == aboutLegacy2Link_) {
                 HCURSOR hand = ::LoadCursorW(nullptr, IDC_HAND);
                 if (hand != nullptr) {
                     ::SetCursor(hand);
@@ -745,28 +745,25 @@ void MainWindow::CreateSettingsPageControls() {
     aboutFrame_ = CreateGroupBox(settingsPage_, L"");
     aboutTitleStatic_ = CreateLabel(settingsPage_, L"");
     aboutVersionStatic_ = CreateLabel(settingsPage_, L"");
-    aboutCopyrightStatic_ = CreateLabel(settingsPage_, L"");
     aboutGithubLabelStatic_ = CreateLabel(settingsPage_, L"");
     aboutGithubLink_ = ::CreateWindowExW(0, L"STATIC", L"",
                                          WS_CHILD | WS_VISIBLE | WS_TABSTOP | SS_NOTIFY,
                                          0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdAboutGithubLink), instance_, nullptr);
-    aboutForkLabelStatic_ = CreateLabel(settingsPage_, L"");
-    aboutForkLink_ = ::CreateWindowExW(0, L"STATIC", L"",
-                                       WS_CHILD | WS_VISIBLE | WS_TABSTOP | SS_NOTIFY,
-                                       0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdAboutForkLink), instance_, nullptr);
     aboutLegacyHeaderStatic_ = CreateLabel(settingsPage_, L"");
     aboutLegacyUrlStatic_ = CreateLabel(settingsPage_, L"");
-    aboutLegacyCopyrightStatic_ = CreateLabel(settingsPage_, L"");
+    aboutLegacy2Link_ = ::CreateWindowExW(0, L"STATIC", L"",
+                                          WS_CHILD | WS_VISIBLE | WS_TABSTOP | SS_NOTIFY,
+                                          0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdAboutForkLink), instance_, nullptr);
     aboutSummaryStatic_ = CreateLabel(settingsPage_, L"", SS_LEFT);
 
     for (HWND control : {appSettingsFrame_, minimizeToTrayCheck_, enableLpdCheck_, lpdPortLabel_, lpdPortEdit_, enableMdnsCheck_, languageFrame_, languageLabel_, languageCombo_, applyLanguageButton_,
-                         aboutFrame_, aboutTitleStatic_, aboutVersionStatic_, aboutCopyrightStatic_, aboutGithubLabelStatic_,
-                         aboutGithubLink_, aboutForkLabelStatic_, aboutForkLink_, aboutLegacyHeaderStatic_, aboutLegacyUrlStatic_, aboutLegacyCopyrightStatic_, aboutSummaryStatic_}) {
+                         aboutFrame_, aboutTitleStatic_, aboutVersionStatic_, aboutGithubLabelStatic_,
+                         aboutGithubLink_, aboutLegacyHeaderStatic_, aboutLegacyUrlStatic_, aboutLegacy2Link_, aboutSummaryStatic_}) {
         ApplyFont(control);
     }
     if (linkFont_ != nullptr) {
         ::SendMessageW(aboutGithubLink_, WM_SETFONT, reinterpret_cast<WPARAM>(linkFont_), TRUE);
-        ::SendMessageW(aboutForkLink_, WM_SETFONT, reinterpret_cast<WPARAM>(linkFont_), TRUE);
+        ::SendMessageW(aboutLegacy2Link_, WM_SETFONT, reinterpret_cast<WPARAM>(linkFont_), TRUE);
     }
 
     ::SendMessageW(printerCombo_, CB_SETMINVISIBLE, 12, 0);
@@ -864,15 +861,12 @@ void MainWindow::LayoutSettingsPage(int width, int height) {
     const int aboutWidth = width - aboutLeft - margin;
     ::MoveWindow(aboutTitleStatic_, aboutLeft, aboutTop + 30, aboutWidth, 22, TRUE);
     ::MoveWindow(aboutVersionStatic_, aboutLeft, aboutTop + 54, aboutWidth, 20, TRUE);
-    ::MoveWindow(aboutCopyrightStatic_, aboutLeft, aboutTop + 76, aboutWidth, 20, TRUE);
-    ::MoveWindow(aboutGithubLabelStatic_, aboutLeft, aboutTop + 98, 56, 20, TRUE);
-    ::MoveWindow(aboutGithubLink_, aboutLeft + 58, aboutTop + 96, aboutWidth - 60, 24, TRUE);
-    ::MoveWindow(aboutForkLabelStatic_, aboutLeft, aboutTop + 124, 56, 20, TRUE);
-    ::MoveWindow(aboutForkLink_, aboutLeft + 58, aboutTop + 122, aboutWidth - 60, 24, TRUE);
-    ::MoveWindow(aboutLegacyHeaderStatic_, aboutLeft, aboutTop + 160, aboutWidth, 20, TRUE);
-    ::MoveWindow(aboutLegacyUrlStatic_, aboutLeft, aboutTop + 182, aboutWidth, 20, TRUE);
-    ::MoveWindow(aboutLegacyCopyrightStatic_, aboutLeft, aboutTop + 204, aboutWidth, 20, TRUE);
-    ::MoveWindow(aboutSummaryStatic_, aboutLeft, aboutTop + 250, aboutWidth, 48, TRUE);
+    ::MoveWindow(aboutGithubLabelStatic_, aboutLeft, aboutTop + 80, 56, 20, TRUE);
+    ::MoveWindow(aboutGithubLink_, aboutLeft + 58, aboutTop + 78, aboutWidth - 60, 24, TRUE);
+    ::MoveWindow(aboutLegacyHeaderStatic_, aboutLeft, aboutTop + 112, aboutWidth, 20, TRUE);
+    ::MoveWindow(aboutLegacyUrlStatic_, aboutLeft, aboutTop + 136, aboutWidth, 20, TRUE);
+    ::MoveWindow(aboutLegacy2Link_, aboutLeft, aboutTop + 158, aboutWidth, 20, TRUE);
+    ::MoveWindow(aboutSummaryStatic_, aboutLeft, aboutTop + 196, aboutWidth, 24, TRUE);
 }
 
 void MainWindow::ShowActiveTab() {
@@ -933,20 +927,17 @@ void MainWindow::ApplyTranslations() {
     ::SetWindowTextW(aboutTitleStatic_, chineseUi
         ? (traditionalChinese ? L"PrtEasyServer - Windows \u7db2\u8def\u5370\u8868\u6a5f\u4f3a\u670d\u5668" : L"PrtEasyServer - Windows 网络打印服务器")
         : L"PrtEasyServer - Windows Network Print Server");
-    ::SetWindowTextW(aboutVersionStatic_, chineseUi ? (traditionalChinese ? L"\u7248\u672c 2.0" : L"版本 2.0") : L"Version 2.0");
-    ::SetWindowTextW(aboutCopyrightStatic_, L"Copyright (c) 2026 Terence0816");
+    ::SetWindowTextW(aboutVersionStatic_, chineseUi ? (traditionalChinese ? L"\u7248\u672c 2.1" : L"版本 2.1") : L"Version 2.1");
     ::SetWindowTextW(aboutGithubLabelStatic_, L"GitHub:");
-    ::SetWindowTextW(aboutGithubLink_, L"https://github.com/Terence0816/Windows-PrtEasyServer");
-    ::SetWindowTextW(aboutForkLabelStatic_, traditionalChinese ? L"本專案分支：" : (chineseUi ? L"本项目分支：" : L"This fork:"));
-    ::SetWindowTextW(aboutForkLink_, L"https://github.com/dddd592/PrtEasyServer");
-    ::SetWindowTextW(aboutLegacyHeaderStatic_, chineseUi ? (traditionalChinese ? L"\u57fa\u65bc PrinterOne \u4fee\u6539\uff1a" : L"基于 PrinterOne 修改：") : L"Based on PrinterOne:");
+    ::SetWindowTextW(aboutGithubLink_, L"https://github.com/dddd592/PrtEasyServer");
+    ::SetWindowTextW(aboutLegacyHeaderStatic_, chineseUi ? (traditionalChinese ? L"\u57fa\u65bc PrinterOne \u548c Windows-PrtEasyServer \u4fee\u6539\uff1a" : L"基于 PrinterOne 和 Windows-PrtEasyServer 修改：") : L"Based on PrinterOne and Windows-PrtEasyServer:");
     ::SetWindowTextW(aboutLegacyUrlStatic_, L"https://github.com/xtieume/PrinterOne");
-    ::SetWindowTextW(aboutLegacyCopyrightStatic_, L"Original Copyright (c) 2025 xtieume@gmail.com");
+    ::SetWindowTextW(aboutLegacy2Link_, L"https://github.com/Terence0816/Windows-PrtEasyServer");
     ::SetWindowTextW(aboutSummaryStatic_, chineseUi
         ? (traditionalChinese
-            ? L"\u9019\u662f\u4e00\u500b\u7c21\u6613\u7684 TCP/IP \u5217\u5370\u4f3a\u670d\u5668\uff0c\u53ef\u5c07\u672c\u6a5f\u5370\u8868\u6a5f\u8f49\u6210\u7db2\u8def IP \u5370\u8868\u6a5f\u3002\r\n\u652f\u63f4 RAW 9100 \u5217\u5370\uff0c\u4e0d\u9700 Windows \u7db2\u82b3\u3001SMB \u5206\u4eab\u6216\u5e33\u865f\u5bc6\u78bc\u3002"
-            : L"这是一个轻量级 TCP/IP 打印服务器，可将本机 Windows 打印机转换为网络 IP 打印机。\r\n支持 RAW 9100 打印，无需 Windows 文件共享、SMB 或网络凭据。")
-        : L"This is a lightweight TCP/IP print server that turns a local Windows printer into an IP printer.\r\nIt supports RAW 9100 printing without Windows file sharing, SMB, or network credentials.");
+            ? L"\u9019\u662f\u4e00\u500b\u8f15\u91cf\u7d1a TCP/IP \u5217\u5370\u4f3a\u670d\u5668\uff0c\u53ef\u5c07\u672c\u6a5f Windows \u5370\u8868\u6a5f\u8f49\u63db\u70ba\u7db2\u8def IP \u5370\u8868\u6a5f\u3002"
+            : L"这是一个轻量级 TCP/IP 打印服务器，可将本机 Windows 打印机转换为网络 IP 打印机。")
+        : L"This is a lightweight TCP/IP print server that turns a local Windows printer into an IP printer.");
 
     PopulateLanguageCombo();
 }

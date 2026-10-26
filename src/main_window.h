@@ -176,13 +176,10 @@ private:
     HWND aboutFrame_ = nullptr;
     HWND aboutTitleStatic_ = nullptr;
     HWND aboutVersionStatic_ = nullptr;
-    HWND aboutCopyrightStatic_ = nullptr;
     HWND aboutGithubLabelStatic_ = nullptr;
     HWND aboutGithubLink_ = nullptr;
-    HWND aboutForkLabelStatic_ = nullptr;
-    HWND aboutForkLink_ = nullptr;
     HWND aboutLegacyHeaderStatic_ = nullptr;
     HWND aboutLegacyUrlStatic_ = nullptr;
-    HWND aboutLegacyCopyrightStatic_ = nullptr;
+    HWND aboutLegacy2Link_ = nullptr;
     HWND aboutSummaryStatic_ = nullptr;
 };
