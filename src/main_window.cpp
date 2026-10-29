@@ -1032,6 +1032,9 @@ void MainWindow::LoadConfigIntoUi() {
 
 AppConfig MainWindow::CollectConfigFromUi(bool* ok, std::wstring* errorText) const {
     AppConfig config;
+    // Custom forms are not editable in the UI; keep whatever the config file
+    // holds so saving from the UI does not drop them.
+    config.customForms = server_.GetConfigCopy().customForms;
     config.printers = ReadPrinterListView();
     config.webPort = ParsePortValue(GetWindowTextString(webPortEdit_), 80);
     config.language = localizer_.GetCurrentLanguage();

@@ -8,6 +8,14 @@ struct PrinterConfigEntry {
     std::wstring mode = L"auto"; // "raw", "xps", "render" or "auto" (auto resolves per job); auto is the default
 };
 
+// A machine-wide custom paper form that the installer BAT recreates on client
+// PCs, so queues installed there offer the same paper as the server host.
+struct CustomFormEntry {
+    std::wstring name;
+    double widthMm = 0.0;
+    double heightMm = 0.0;
+};
+
 // Maps a user supplied mode string onto one of the supported modes.
 // Unknown values fall back to "raw" so older configurations keep working.
 std::wstring NormalizePrintMode(const std::wstring& mode);
@@ -17,6 +25,8 @@ std::wstring PrintModeDisplayName(const std::wstring& mode);
 
 struct AppConfig {
     std::vector<PrinterConfigEntry> printers;
+    // Custom paper forms embedded into every generated installer BAT.
+    std::vector<CustomFormEntry> customForms;
     int webPort = 80;
     std::wstring language = L"en";
     bool minimizeToTray = true;

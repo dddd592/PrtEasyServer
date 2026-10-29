@@ -1997,6 +1997,90 @@ function Get-PrintingAdminScript($scriptName) {
 }
 $targetHost = $hostName
 try { [System.Net.Dns]::GetHostAddresses($hostName) | Out-Null } catch { $targetHost = $hostIp }
+$customForms = __CUSTOM_FORMS_DATA__
+$customFormApiCode = @'
+using System;
+using System.Runtime.InteropServices;
+public static class PrtFormApi {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SIZE { public int cx; public int cy; }
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct FORM_INFO_1W {
+        public uint Flags;
+        [MarshalAs(UnmanagedType.LPWStr)] public string pName;
+        public SIZE Size;
+        public SIZE ImageableArea;
+    }
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct PRINTER_DEFAULTSW {
+        [MarshalAs(UnmanagedType.LPWStr)] public string pDatatype;
+        public IntPtr pDevMode;
+        public uint DesiredAccess;
+    }
+    [DllImport("winspool.drv", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool OpenPrinter(string pPrinterName, out IntPtr phPrinter, ref PRINTER_DEFAULTSW pDefault);
+    [DllImport("winspool.drv", SetLastError = true)]
+    public static extern bool ClosePrinter(IntPtr hPrinter);
+    [DllImport("winspool.drv", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool AddForm(IntPtr hPrinter, uint Level, ref FORM_INFO_1W pForm);
+}
+'@
+try { Add-Type -TypeDefinition $customFormApiCode -ErrorAction SilentlyContinue } catch {}
+function Ensure-CustomForm($formName, $widthMm, $heightMm) {
+    if ([string]::IsNullOrWhiteSpace($formName)) { return }
+    try {
+        $serverAllAccess = [uint32]0xF0003
+        $names = @('')
+        if (Test-Command 'Get-Printer') {
+            $firstQueue = Get-Printer -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Name
+            if ($firstQueue) { $names += [string]$firstQueue }
+        }
+        foreach ($queueName in $names) {
+            $defaults = New-Object 'PrtFormApi+PRINTER_DEFAULTSW'
+            $defaults.pDatatype = $null
+            $defaults.pDevMode = [IntPtr]::Zero
+            $defaults.DesiredAccess = $serverAllAccess
+            $handle = [IntPtr]::Zero
+            if (-not [PrtFormApi]::OpenPrinter($queueName, [ref]$handle, [ref]$defaults)) { continue }
+            try {
+                $info = New-Object 'PrtFormApi+FORM_INFO_1W'
+                $info.Flags = [uint32]0
+                $info.pName = $formName
+                $size = New-Object 'PrtFormApi+SIZE'
+                $size.cx = [int][math]::Round($widthMm * 1000.0)
+                $size.cy = [int][math]::Round($heightMm * 1000.0)
+                $info.Size = $size
+                $area = New-Object 'PrtFormApi+SIZE'
+                $area.cx = $size.cx
+                $area.cy = $size.cy
+                $info.ImageableArea = $area
+                if ([PrtFormApi]::AddForm($handle, 1, [ref]$info)) {
+                    Write-Host ('Custom form added: ' + $formName)
+                } else {
+                    $formError = [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
+                    # 183 ERROR_ALREADY_EXISTS, 1802 ERROR_FILE_EXISTS: the form
+                    # is already present, which is exactly what we want.
+                    if ($formError -eq 183 -or $formError -eq 1802) {
+                        Write-Host ('Custom form already present: ' + $formName)
+                    } elseif ($formError -eq 5) {
+                        # Access denied on this handle; try the next candidate.
+                        continue
+                    } else {
+                        Write-Host ('Custom form not added: ' + $formName + ' (error ' + $formError + ')')
+                    }
+                }
+                return
+            } finally {
+                [void][PrtFormApi]::ClosePrinter($handle)
+            }
+        }
+        Write-Host 'Custom form could not be registered: no openable printer queue with admin rights.'
+    } catch {
+    }
+}
+foreach ($customForm in $customForms) {
+    Ensure-CustomForm $customForm.Name $customForm.WidthMm $customForm.HeightMm
+}
 function Get-InstalledPrinterPort($targetPortName) {
     if (Test-Command 'Get-PrinterPort') {
         return Get-PrinterPort -Name $targetPortName -ErrorAction SilentlyContinue
@@ -2296,6 +2380,27 @@ if ($printerInstalled) {
 )PS";
 
     std::wstring psScript = psScriptTemplate;
+
+    // Embed the configured custom paper forms into the installer script.
+    if (config.customForms.empty()) {
+        psScript = ReplaceAll(psScript, L"__CUSTOM_FORMS_DATA__", L"@()");
+    } else {
+        std::wostringstream formsData;
+        formsData << L"@(\n";
+        for (std::size_t i = 0; i < config.customForms.size(); ++i) {
+            const CustomFormEntry& form = config.customForms[i];
+            formsData << L"    @{ Name = '" << escapePsLiteral(form.name)
+                      << L"'; WidthMm = " << form.widthMm
+                      << L"; HeightMm = " << form.heightMm << L" }";
+            if (i + 1 < config.customForms.size()) {
+                formsData << L",";
+            }
+            formsData << L"\n";
+        }
+        formsData << L")";
+        psScript = ReplaceAll(psScript, L"__CUSTOM_FORMS_DATA__", formsData.str());
+    }
+
     psScript = ReplaceAll(psScript, L"__INSTALLER_SUCCESS_TITLE__", escapePsLiteral(localizer.Get(L"installer_success_title")));
     psScript = ReplaceAll(psScript, L"__INSTALLER_SUCCESS_MESSAGE__", escapePsLiteral(localizer.Get(L"installer_success_message")));
     psScript = ReplaceAll(psScript, L"__INSTALLER_MISSING_TITLE__", escapePsLiteral(localizer.Get(L"installer_missing_title")));

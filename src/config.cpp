@@ -155,6 +155,32 @@ AppConfig ConfigStore::Load() const {
     }
 
     config.printers = printers;
+
+    // Optional custom paper forms that installer BATs recreate on clients.
+    std::vector<CustomFormEntry> forms;
+    const std::wregex formPattern(
+        LR"FORM(\{[^{}]*"name"\s*:\s*"((?:\\.|[^"])*)"\s*,\s*"width_mm"\s*:\s*([0-9.]+)\s*,\s*"height_mm"\s*:\s*([0-9.]+)[^{}]*\})FORM",
+        std::regex::icase);
+    auto formBegin = std::wsregex_iterator(json.begin(), json.end(), formPattern);
+    auto formEnd = std::wsregex_iterator();
+    for (auto it = formBegin; it != formEnd; ++it) {
+        CustomFormEntry form;
+        form.name = (*it)[1].str();
+        form.name = ReplaceAll(form.name, L"\\\"", L"\"");
+        form.name = ReplaceAll(form.name, L"\\\\", L"\\");
+        try {
+            form.widthMm = std::stod((*it)[2].str());
+            form.heightMm = std::stod((*it)[3].str());
+        } catch (...) {
+            continue;
+        }
+        if (Trim(form.name).empty() || form.widthMm <= 0.0 || form.heightMm <= 0.0) {
+            continue;
+        }
+        forms.push_back(form);
+    }
+    config.customForms = forms;
+
     return config;
 }
 
@@ -170,6 +196,21 @@ bool ConfigStore::Save(const AppConfig& config) const {
         output << L"      \"mode\": \"" << NormalizePrintMode(entry.mode) << L"\"\n";
         output << L"    }";
         if (i + 1 < config.printers.size()) {
+            output << L",";
+        }
+        output << L"\n";
+    }
+    output << L"  ],\n";
+
+    output << L"  \"custom_forms\": [\n";
+    for (std::size_t i = 0; i < config.customForms.size(); ++i) {
+        const CustomFormEntry& form = config.customForms[i];
+        output << L"    {\n";
+        output << L"      \"name\": \"" << JsonEscape(form.name) << L"\",\n";
+        output << L"      \"width_mm\": " << form.widthMm << L",\n";
+        output << L"      \"height_mm\": " << form.heightMm << L"\n";
+        output << L"    }";
+        if (i + 1 < config.customForms.size()) {
             output << L",";
         }
         output << L"\n";
