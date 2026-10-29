@@ -44,6 +44,13 @@ private:
         IdEnableLpdCheck,
         IdLpdPortEdit,
         IdEnableMdnsCheck,
+        IdFormList,
+        IdFormNameEdit,
+        IdFormWidthEdit,
+        IdFormHeightEdit,
+        IdFormAddButton,
+        IdFormUpdateButton,
+        IdFormDeleteButton,
         IdServerStatusStatic,
         IdStartupStatusStatic,
         IdStatusDetailsStatic,
@@ -82,6 +89,14 @@ private:
     void SetSuggestedNextPrinterPort();
     bool IsPortAlreadyUsed(int port, int ignoreRow) const;
     bool HasConfiguredPrinters() const;
+
+    void RefreshFormListView();
+    int GetSelectedFormIndex() const;
+    bool ParseFormEditor(CustomFormEntry* form) const;
+    void ClearFormEditor();
+    void OnFormAdd();
+    void OnFormUpdate();
+    void OnFormDelete();
 
     void AppendLog(const std::wstring& message);
     void PostLog(const std::wstring& message);
@@ -169,6 +184,18 @@ private:
     HWND lpdPortEdit_ = nullptr;
     HWND lpdPortLabel_ = nullptr;
     HWND enableMdnsCheck_ = nullptr;
+    HWND formsFrame_ = nullptr;
+    HWND formList_ = nullptr;
+    HWND formNameLabel_ = nullptr;
+    HWND formNameEdit_ = nullptr;
+    HWND formWidthLabel_ = nullptr;
+    HWND formWidthEdit_ = nullptr;
+    HWND formHeightLabel_ = nullptr;
+    HWND formHeightEdit_ = nullptr;
+    HWND formAddButton_ = nullptr;
+    HWND formUpdateButton_ = nullptr;
+    HWND formDeleteButton_ = nullptr;
+    std::vector<CustomFormEntry> editingForms_;
     HWND languageFrame_ = nullptr;
     HWND languageLabel_ = nullptr;
     HWND languageCombo_ = nullptr;

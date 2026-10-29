@@ -496,6 +496,15 @@ LRESULT MainWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
                 case IdMinimizeToTrayCheck:
                     minimizeToTray_ = (::SendMessageW(minimizeToTrayCheck_, BM_GETCHECK, 0, 0) == BST_CHECKED);
                     break;
+                case IdFormAddButton:
+                    OnFormAdd();
+                    break;
+                case IdFormUpdateButton:
+                    OnFormUpdate();
+                    break;
+                case IdFormDeleteButton:
+                    OnFormDelete();
+                    break;
                 default:
                     break;
             }
@@ -742,6 +751,34 @@ void MainWindow::CreateSettingsPageControls() {
     applyLanguageButton_ = ::CreateWindowExW(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
                                              0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdApplyLanguageButton), instance_, nullptr);
 
+    formsFrame_ = CreateGroupBox(settingsPage_, L"");
+    formList_ = ::CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, L"", WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS,
+                                  0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdFormList), instance_, nullptr);
+    ListView_SetExtendedListViewStyle(formList_, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+    LVCOLUMNW formCol{};
+    formCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+    formCol.cx = 220;
+    formCol.pszText = const_cast<LPWSTR>(L"Name");
+    ListView_InsertColumn(formList_, 0, &formCol);
+    formCol.cx = 190;
+    formCol.pszText = const_cast<LPWSTR>(L"Size");
+    ListView_InsertColumn(formList_, 1, &formCol);
+    formNameLabel_ = CreateLabel(settingsPage_, L"");
+    formNameEdit_ = ::CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL,
+                                      0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdFormNameEdit), instance_, nullptr);
+    formWidthLabel_ = CreateLabel(settingsPage_, L"");
+    formWidthEdit_ = ::CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL,
+                                       0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdFormWidthEdit), instance_, nullptr);
+    formHeightLabel_ = CreateLabel(settingsPage_, L"");
+    formHeightEdit_ = ::CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL,
+                                        0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdFormHeightEdit), instance_, nullptr);
+    formAddButton_ = ::CreateWindowExW(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                       0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdFormAddButton), instance_, nullptr);
+    formUpdateButton_ = ::CreateWindowExW(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                          0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdFormUpdateButton), instance_, nullptr);
+    formDeleteButton_ = ::CreateWindowExW(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                          0, 0, 10, 10, settingsPage_, reinterpret_cast<HMENU>(IdFormDeleteButton), instance_, nullptr);
+
     aboutFrame_ = CreateGroupBox(settingsPage_, L"");
     aboutTitleStatic_ = CreateLabel(settingsPage_, L"");
     aboutVersionStatic_ = CreateLabel(settingsPage_, L"");
@@ -757,6 +794,8 @@ void MainWindow::CreateSettingsPageControls() {
     aboutSummaryStatic_ = CreateLabel(settingsPage_, L"", SS_LEFT);
 
     for (HWND control : {appSettingsFrame_, minimizeToTrayCheck_, enableLpdCheck_, lpdPortLabel_, lpdPortEdit_, enableMdnsCheck_, languageFrame_, languageLabel_, languageCombo_, applyLanguageButton_,
+                         formsFrame_, formNameLabel_, formNameEdit_, formWidthLabel_, formWidthEdit_, formHeightLabel_, formHeightEdit_,
+                         formAddButton_, formUpdateButton_, formDeleteButton_,
                          aboutFrame_, aboutTitleStatic_, aboutVersionStatic_, aboutGithubLabelStatic_,
                          aboutGithubLink_, aboutLegacyHeaderStatic_, aboutLegacyUrlStatic_, aboutLegacy2Link_, aboutSummaryStatic_}) {
         ApplyFont(control);
@@ -854,7 +893,19 @@ void MainWindow::LayoutSettingsPage(int width, int height) {
     ::MoveWindow(languageCombo_, margin + 160, 192, 220, 140, TRUE);
     ::MoveWindow(applyLanguageButton_, margin + 392, 190, 120, 30, TRUE);
 
-    const int aboutTop = 262;
+    ::MoveWindow(formsFrame_, 0, 262, width, 172, TRUE);
+    ::MoveWindow(formList_, margin, 30, 410, 118, TRUE);
+    ::MoveWindow(formNameLabel_, margin + 440, 34, 60, 20, TRUE);
+    ::MoveWindow(formNameEdit_, margin + 505, 30, 200, 24, TRUE);
+    ::MoveWindow(formWidthLabel_, margin + 440, 66, 60, 20, TRUE);
+    ::MoveWindow(formWidthEdit_, margin + 505, 62, 90, 24, TRUE);
+    ::MoveWindow(formHeightLabel_, margin + 605, 66, 60, 20, TRUE);
+    ::MoveWindow(formHeightEdit_, margin + 670, 62, 90, 24, TRUE);
+    ::MoveWindow(formAddButton_, margin + 775, 30, 90, 28, TRUE);
+    ::MoveWindow(formUpdateButton_, margin + 775, 64, 90, 28, TRUE);
+    ::MoveWindow(formDeleteButton_, margin + 775, 98, 90, 28, TRUE);
+
+    const int aboutTop = 444;
     const int aboutFrameHeight = std::min(340, std::max(250, height - aboutTop - 12));
     ::MoveWindow(aboutFrame_, 0, aboutTop, width, aboutFrameHeight, TRUE);
     const int aboutLeft = margin + 6;
@@ -917,6 +968,15 @@ void MainWindow::ApplyTranslations() {
 
     ::SetWindowTextW(appSettingsFrame_, localizer_.Get(L"frame_app_settings").c_str());
     ::SetWindowTextW(minimizeToTrayCheck_, localizer_.Get(L"setting_minimize_to_tray").c_str());
+    ::SetWindowTextW(formsFrame_, localizer_.Get(L"frame_custom_forms").c_str());
+    SetListViewColumnText(formList_, 0, localizer_.Get(L"form_column_name"));
+    SetListViewColumnText(formList_, 1, localizer_.Get(L"form_column_size"));
+    ::SetWindowTextW(formNameLabel_, localizer_.Get(L"form_name_label").c_str());
+    ::SetWindowTextW(formWidthLabel_, localizer_.Get(L"form_width_label").c_str());
+    ::SetWindowTextW(formHeightLabel_, localizer_.Get(L"form_height_label").c_str());
+    ::SetWindowTextW(formAddButton_, localizer_.Get(L"form_add").c_str());
+    ::SetWindowTextW(formUpdateButton_, localizer_.Get(L"form_update").c_str());
+    ::SetWindowTextW(formDeleteButton_, localizer_.Get(L"form_delete").c_str());
     ::SetWindowTextW(languageFrame_, localizer_.Get(L"frame_language").c_str());
     ::SetWindowTextW(languageLabel_, localizer_.Get(L"label_language").c_str());
     ::SetWindowTextW(applyLanguageButton_, localizer_.Get(L"button_apply_language").c_str());
@@ -1011,6 +1071,9 @@ void MainWindow::LoadConfigIntoUi() {
     minimizeToTray_ = config.minimizeToTray;
     ::SendMessageW(minimizeToTrayCheck_, BM_SETCHECK, minimizeToTray_ ? BST_CHECKED : BST_UNCHECKED, 0);
     UpdatePrinterListView(config.printers);
+    editingForms_ = config.customForms;
+    RefreshFormListView();
+    ClearFormEditor();
     SetEditText(webPortEdit_, std::to_wstring(config.webPort));
     ::SendMessageW(enableLpdCheck_, BM_SETCHECK, config.enableLpd ? BST_CHECKED : BST_UNCHECKED, 0);
     SetEditText(lpdPortEdit_, std::to_wstring(config.lpdPort));
@@ -1032,9 +1095,7 @@ void MainWindow::LoadConfigIntoUi() {
 
 AppConfig MainWindow::CollectConfigFromUi(bool* ok, std::wstring* errorText) const {
     AppConfig config;
-    // Custom forms are not editable in the UI; keep whatever the config file
-    // holds so saving from the UI does not drop them.
-    config.customForms = server_.GetConfigCopy().customForms;
+    config.customForms = editingForms_;
     config.printers = ReadPrinterListView();
     config.webPort = ParsePortValue(GetWindowTextString(webPortEdit_), 80);
     config.language = localizer_.GetCurrentLanguage();
@@ -1238,6 +1299,112 @@ void MainWindow::UpdateStatus() {
 
 void MainWindow::UpdateStartupStatus() {
     UpdateStatus();
+}
+
+void MainWindow::RefreshFormListView() {
+    ListView_DeleteAllItems(formList_);
+    LVITEMW item{};
+    item.mask = LVIF_TEXT;
+    for (std::size_t i = 0; i < editingForms_.size(); ++i) {
+        const CustomFormEntry& form = editingForms_[i];
+        item.iItem = static_cast<int>(i);
+        item.pszText = const_cast<LPWSTR>(form.name.c_str());
+        ListView_InsertItem(formList_, &item);
+        wchar_t sizeText[80] = {};
+        swprintf_s(sizeText, L"%.1f x %.1f mm", form.widthMm, form.heightMm);
+        ListView_SetItemText(formList_, static_cast<int>(i), 1, sizeText);
+    }
+}
+
+int MainWindow::GetSelectedFormIndex() const {
+    const int index = ListView_GetNextItem(formList_, -1, LVNI_SELECTED);
+    if (index < 0 || index >= static_cast<int>(editingForms_.size())) {
+        return -1;
+    }
+    return index;
+}
+
+bool MainWindow::ParseFormEditor(CustomFormEntry* form) const {
+    CustomFormEntry parsed;
+    parsed.name = GetWindowTextString(formNameEdit_);
+    if (Trim(parsed.name).empty()) {
+        ::MessageBoxW(hwnd_, localizer_.Get(L"message_form_name_required").c_str(),
+                      localizer_.Get(L"app_title").c_str(), MB_ICONWARNING | MB_OK);
+        return false;
+    }
+    try {
+        parsed.widthMm = std::stod(GetWindowTextString(formWidthEdit_));
+        parsed.heightMm = std::stod(GetWindowTextString(formHeightEdit_));
+    } catch (...) {
+        parsed.widthMm = 0.0;
+        parsed.heightMm = 0.0;
+    }
+    if (parsed.widthMm <= 0.0 || parsed.heightMm <= 0.0) {
+        ::MessageBoxW(hwnd_, localizer_.Get(L"message_form_size_invalid").c_str(),
+                      localizer_.Get(L"app_title").c_str(), MB_ICONWARNING | MB_OK);
+        return false;
+    }
+    if (form) {
+        *form = parsed;
+    }
+    return true;
+}
+
+void MainWindow::ClearFormEditor() {
+    SetEditText(formNameEdit_, L"");
+    SetEditText(formWidthEdit_, L"");
+    SetEditText(formHeightEdit_, L"");
+}
+
+void MainWindow::OnFormAdd() {
+    CustomFormEntry form;
+    if (!ParseFormEditor(&form)) {
+        return;
+    }
+    for (const CustomFormEntry& existing : editingForms_) {
+        if (existing.name == form.name) {
+            ::MessageBoxW(hwnd_, localizer_.Get(L"message_form_exists").c_str(),
+                          localizer_.Get(L"app_title").c_str(), MB_ICONWARNING | MB_OK);
+            return;
+        }
+    }
+    editingForms_.push_back(form);
+    RefreshFormListView();
+    ClearFormEditor();
+}
+
+void MainWindow::OnFormUpdate() {
+    const int index = GetSelectedFormIndex();
+    if (index < 0) {
+        ::MessageBoxW(hwnd_, localizer_.Get(L"message_select_form").c_str(),
+                      localizer_.Get(L"app_title").c_str(), MB_ICONWARNING | MB_OK);
+        return;
+    }
+    CustomFormEntry form;
+    if (!ParseFormEditor(&form)) {
+        return;
+    }
+    for (std::size_t i = 0; i < editingForms_.size(); ++i) {
+        if (static_cast<int>(i) != index && editingForms_[i].name == form.name) {
+            ::MessageBoxW(hwnd_, localizer_.Get(L"message_form_exists").c_str(),
+                          localizer_.Get(L"app_title").c_str(), MB_ICONWARNING | MB_OK);
+            return;
+        }
+    }
+    editingForms_[static_cast<std::size_t>(index)] = form;
+    RefreshFormListView();
+}
+
+void MainWindow::OnFormDelete() {
+    const int index = GetSelectedFormIndex();
+    if (index < 0) {
+        ::MessageBoxW(hwnd_, localizer_.Get(L"message_select_form").c_str(),
+                      localizer_.Get(L"app_title").c_str(), MB_ICONWARNING | MB_OK);
+        return;
+    }
+    editingForms_.erase(editingForms_.begin() + index);
+    RefreshFormListView();
+    ClearFormEditor();
 }
 
 void MainWindow::OnAddOrUpdatePrinter() {
